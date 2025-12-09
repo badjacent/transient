@@ -5,6 +5,7 @@ import pytest
 from datetime import date
 from dotenv import load_dotenv
 from src.data_tools.fd_api import get_price_snapshot
+from src.data_tools.schemas import EquitySnapshot, PriceSnapshot
 
 # Load environment variables
 load_dotenv()
@@ -57,36 +58,38 @@ def test_get_price_snapshot_june_5_2024(api_key):
     # if the API doesn't have data for this date or returns different prices
     test_date = date(2024, 6, 5)
     result = get_price_snapshot("AAPL", test_date)
+    assert isinstance(result, PriceSnapshot)
+    data = result.model_dump()
     
     # Verify basic structure
-    assert result["ticker"] == "AAPL"
-    assert result["date"] == "2024-06-05"
-    assert result["source"] == "financialdatasets.ai"
+    assert data["ticker"] == "AAPL"
+    assert data["date"] == "2024-06-05"
+    assert data["source"] == "financialdatasets.ai"
     
     # Verify we got a price
-    assert "price" in result
-    assert result["price"] > 0
-    assert isinstance(result["price"], float)
+    assert "price" in data
+    assert data["price"] > 0
+    assert isinstance(data["price"], float)
     
     # Verify returns are calculated (may differ from expected due to API data)
-    assert "return_1d" in result
-    assert isinstance(result["return_1d"], float)
+    assert "return_1d" in data
+    assert isinstance(data["return_1d"], float)
     
-    assert "return_5d" in result
-    assert isinstance(result["return_5d"], float)
+    assert "return_5d" in data
+    assert isinstance(data["return_5d"], float)
     
     # Verify the price matches expected
-    assert abs(result["price"] - EXPECTED_AAPL_JUNE_5_2024["price"]) < 0.001, \
-        f"Price mismatch: got {result['price']}, expected ~{EXPECTED_AAPL_JUNE_5_2024['price']}"
+    assert abs(data["price"] - EXPECTED_AAPL_JUNE_5_2024["price"]) < 0.001, \
+        f"Price mismatch: got {data['price']}, expected ~{EXPECTED_AAPL_JUNE_5_2024['price']}"
     
     # Calculate expected returns from price ratios (very tight tolerance since we use unadjusted prices)
     expected_1d = EXPECTED_AAPL_JUNE_5_2024["price"] / EXPECTED_AAPL_JUNE_5_2024["price_1d_ago"]
-    assert abs(result["return_1d"] - expected_1d) < 1e-7, \
-        f"1D return mismatch: got {result['return_1d']:.10f}, expected {expected_1d:.10f}"
+    assert abs(data["return_1d"] - expected_1d) < 1e-7, \
+        f"1D return mismatch: got {data['return_1d']:.10f}, expected {expected_1d:.10f}"
     
     expected_5d = EXPECTED_AAPL_JUNE_5_2024["price"] / EXPECTED_AAPL_JUNE_5_2024["price_5d_ago"]
-    assert abs(result["return_5d"] - expected_5d) < 1e-7, \
-        f"5D return mismatch: got {result['return_5d']:.10f}, expected {expected_5d:.10f}"
+    assert abs(data["return_5d"] - expected_5d) < 1e-7, \
+        f"5D return mismatch: got {data['return_5d']:.10f}, expected {expected_5d:.10f}"
 
 
 def test_get_price_snapshot_december_27_2024(api_key):
@@ -94,72 +97,76 @@ def test_get_price_snapshot_december_27_2024(api_key):
     # December 27, 2024 is a Friday, a regular trading day
     test_date = date(2024, 12, 27)
     result = get_price_snapshot("AAPL", test_date)
+    assert isinstance(result, PriceSnapshot)
+    data = result.model_dump()
     
     # Verify basic structure
-    assert result["ticker"] == "AAPL"
-    assert result["date"] == "2024-12-27"  # Date should be the requested date
-    assert result["source"] == "financialdatasets.ai"
+    assert data["ticker"] == "AAPL"
+    assert data["date"] == "2024-12-27"  # Date should be the requested date
+    assert data["source"] == "financialdatasets.ai"
     
     # Verify we got a price
-    assert "price" in result
-    assert result["price"] > 0
-    assert isinstance(result["price"], float)
+    assert "price" in data
+    assert data["price"] > 0
+    assert isinstance(data["price"], float)
     
     # Verify returns are calculated
-    assert "return_1d" in result
-    assert isinstance(result["return_1d"], float)
+    assert "return_1d" in data
+    assert isinstance(data["return_1d"], float)
     
-    assert "return_5d" in result
-    assert isinstance(result["return_5d"], float)
+    assert "return_5d" in data
+    assert isinstance(data["return_5d"], float)
     
     # Verify the price matches expected (Dec 27, 2024 close: 255.59)
-    assert abs(result["price"] - EXPECTED_AAPL_DEC_27_2024["price"]) < 0.001, \
-        f"Price mismatch: got {result['price']}, expected ~{EXPECTED_AAPL_DEC_27_2024['price']}"
+    assert abs(data["price"] - EXPECTED_AAPL_DEC_27_2024["price"]) < 0.001, \
+        f"Price mismatch: got {data['price']}, expected ~{EXPECTED_AAPL_DEC_27_2024['price']}"
     
     # Calculate expected returns from price ratios (very tight tolerance since we use unadjusted prices)
     expected_1d = EXPECTED_AAPL_DEC_27_2024["price"] / EXPECTED_AAPL_DEC_27_2024["price_1d_ago"]
-    assert abs(result["return_1d"] - expected_1d) < 1e-7, \
-        f"1D return mismatch: got {result['return_1d']:.10f}, expected {expected_1d:.10f}"
+    assert abs(data["return_1d"] - expected_1d) < 1e-7, \
+        f"1D return mismatch: got {data['return_1d']:.10f}, expected {expected_1d:.10f}"
     
     expected_5d = EXPECTED_AAPL_DEC_27_2024["price"] / EXPECTED_AAPL_DEC_27_2024["price_5d_ago"]
-    assert abs(result["return_5d"] - expected_5d) < 1e-7, \
-        f"5D return mismatch: got {result['return_5d']:.10f}, expected {expected_5d:.10f}"
+    assert abs(data["return_5d"] - expected_5d) < 1e-7, \
+        f"5D return mismatch: got {data['return_5d']:.10f}, expected {expected_5d:.10f}"
 
 
 def test_get_price_snapshot_january_13_2025(api_key):
     """Test get_price_snapshot with January 13, 2025 (Monday) using real API."""
     test_date = date(2025, 1, 13)
     result = get_price_snapshot("AAPL", test_date)
+    assert isinstance(result, PriceSnapshot)
+    data = result.model_dump()
     
     # Verify basic structure
-    assert result["ticker"] == "AAPL"
-    assert result["date"] == "2025-01-13"  # Date should be the requested date
-    assert result["source"] == "financialdatasets.ai"
+    assert data["ticker"] == "AAPL"
+    assert data["date"] == "2025-01-13"  # Date should be the requested date
+    assert data["source"] == "financialdatasets.ai"
     
     # Verify we got a price
-    assert "price" in result
-    assert result["price"] > 0
-    assert isinstance(result["price"], float)
+    assert "price" in data
+    assert data["price"] > 0
+    assert isinstance(data["price"], float)
     
     # Verify returns are calculated
-    assert "return_1d" in result
-    assert isinstance(result["return_1d"], float)
+    assert "return_1d" in data
+    assert isinstance(data["return_1d"], float)
     
-    assert "return_5d" in result
-    assert isinstance(result["return_5d"], float)
+    assert "return_5d" in data
+    assert isinstance(data["return_5d"], float)
     
     # Verify the price matches expected (Jan 13, 2025 close: 234.40)
-    assert abs(result["price"] - EXPECTED_AAPL_JAN_13_2025["price"]) < 0.001, \
-        f"Price mismatch: got {result['price']}, expected ~{EXPECTED_AAPL_JAN_13_2025['price']}"
+    assert abs(data["price"] - EXPECTED_AAPL_JAN_13_2025["price"]) < 0.001, \
+        f"Price mismatch: got {data['price']}, expected ~{EXPECTED_AAPL_JAN_13_2025['price']}"
     
     # Calculate expected returns from price ratios (very tight tolerance since we use unadjusted prices)
     expected_1d = EXPECTED_AAPL_JAN_13_2025["price"] / EXPECTED_AAPL_JAN_13_2025["price_1d_ago"]
-    assert abs(result["return_1d"] - expected_1d) < 1e-7, \
-        f"1D return mismatch: got {result['return_1d']:.10f}, expected {expected_1d:.10f}"
+    assert abs(data["return_1d"] - expected_1d) < 1e-7, \
+        f"1D return mismatch: got {data['return_1d']:.10f}, expected {expected_1d:.10f}"
     
     expected_5d = EXPECTED_AAPL_JAN_13_2025["price"] / EXPECTED_AAPL_JAN_13_2025["price_5d_ago"]
-    assert abs(result["return_5d"] - expected_5d) < 1e-7, \
-        f"5D return mismatch: got {result['return_5d']:.10f}, expected {expected_5d:.10f}"
+    assert abs(data["return_5d"] - expected_5d) < 1e-7, \
+        f"5D return mismatch: got {data['return_5d']:.10f}, expected {expected_5d:.10f}"
 
 
 def test_get_price_snapshot_requires_date():
@@ -194,24 +201,26 @@ def test_get_price_snapshot_returns_correct_structure(api_key):
     """Test that get_price_snapshot returns the correct structure using real API."""
     test_date = date(2024, 6, 5)
     result = get_price_snapshot("AAPL", test_date)
+    assert isinstance(result, PriceSnapshot)
+    data = result.model_dump()
     
     # Verify all required keys are present
     required_keys = ["ticker", "price", "return_1d", "return_5d", "date", "source"]
     for key in required_keys:
-        assert key in result, f"Missing required key: {key}"
+        assert key in data, f"Missing required key: {key}"
     
     # Verify types
-    assert isinstance(result["ticker"], str)
-    assert isinstance(result["price"], float)
-    assert isinstance(result["return_1d"], float)
-    assert isinstance(result["return_5d"], float)
-    assert isinstance(result["date"], str)
-    assert isinstance(result["source"], str)
+    assert isinstance(data["ticker"], str)
+    assert isinstance(data["price"], float)
+    assert isinstance(data["return_1d"], float)
+    assert isinstance(data["return_5d"], float)
+    assert isinstance(data["date"], str)
+    assert isinstance(data["source"], str)
     
     # Verify values are reasonable
-    assert result["price"] > 0
-    assert result["ticker"] == "AAPL"
-    assert result["source"] == "financialdatasets.ai"
+    assert data["price"] > 0
+    assert data["ticker"] == "AAPL"
+    assert data["source"] == "financialdatasets.ai"
 
 
 def test_get_equity_snapshot(api_key):
@@ -221,32 +230,34 @@ def test_get_equity_snapshot(api_key):
     # Test with a specific date - use today's date
     today = date.today()
     result = get_equity_snapshot("AAPL", today)
+    assert isinstance(result, EquitySnapshot)
+    data = result.model_dump()
     
     # Verify all required keys are present
     required_keys = ["ticker", "price", "return_1d", "return_5d", "market_cap", "sector", "date", "source"]
     for key in required_keys:
-        assert key in result, f"Missing required key: {key}"
+        assert key in data, f"Missing required key: {key}"
     
     # Verify types
-    assert isinstance(result["ticker"], str)
-    assert isinstance(result["price"], float)
-    assert isinstance(result["return_1d"], float)
-    assert isinstance(result["return_5d"], float)
-    assert isinstance(result["market_cap"], float)
-    assert isinstance(result["sector"], str)
-    assert isinstance(result["date"], str)
-    assert isinstance(result["source"], str)
+    assert isinstance(data["ticker"], str)
+    assert isinstance(data["price"], float)
+    assert isinstance(data["return_1d"], float)
+    assert isinstance(data["return_5d"], float)
+    assert isinstance(data["market_cap"], float)
+    assert isinstance(data["sector"], str)
+    assert isinstance(data["date"], str)
+    assert isinstance(data["source"], str)
     
     # Verify values are reasonable
-    assert result["ticker"] == "AAPL"
-    assert result["price"] > 0
-    assert result["market_cap"] > 0
-    assert result["sector"] != "Unknown"  # Should have a real sector
-    assert result["source"] == "financialdatasets.ai"
+    assert data["ticker"] == "AAPL"
+    assert data["price"] > 0
+    assert data["market_cap"] > 0
+    assert data["sector"] != "Unknown"  # Should have a real sector
+    assert data["source"] == "financialdatasets.ai"
     
     # Industry is optional but should be present if available
-    if "industry" in result:
-        assert isinstance(result["industry"], str)
+    if "industry" in data:
+        assert isinstance(data["industry"], str)
 
 
 def test_get_equity_snapshot_with_date(api_key):
@@ -256,14 +267,44 @@ def test_get_equity_snapshot_with_date(api_key):
     # Test with June 5, 2024
     test_date = date(2024, 6, 5)
     result = get_equity_snapshot("AAPL", test_date)
+    assert isinstance(result, EquitySnapshot)
+    data = result.model_dump()
     
     # Verify date is set correctly
-    assert result["date"] == "2024-06-05"
+    assert data["date"] == "2024-06-05"
     
     # Verify all required fields are present
-    assert "price" in result
-    assert "market_cap" in result
-    assert "sector" in result
-    assert result["price"] > 0
-    assert result["market_cap"] > 0
+    assert "price" in data
+    assert "market_cap" in data
+    assert "sector" in data
+    assert data["price"] > 0
+    assert data["market_cap"] > 0
 
+
+def test_get_equity_snapshot_none_date(api_key):
+    """Test get_equity_snapshot function with None date (should use previous weekday)."""
+    from src.data_tools.fd_api import get_equity_snapshot, _get_previous_weekday
+    
+    # Test with None date - should use previous weekday
+    result = get_equity_snapshot("AAPL", None)
+    assert isinstance(result, EquitySnapshot)
+    data = result.model_dump()
+    
+    # Verify all required keys are present
+    required_keys = ["ticker", "price", "return_1d", "return_5d", "market_cap", "sector", "date", "source"]
+    for key in required_keys:
+        assert key in data, f"Missing required key: {key}"
+    
+    # Verify the date used is the previous weekday
+    expected_date = _get_previous_weekday()
+    assert data["date"] == expected_date.strftime("%Y-%m-%d")
+    
+    # Verify the date is a weekday (Monday=0, Friday=4)
+    result_date = date.fromisoformat(data["date"])
+    assert result_date.weekday() < 5, f"Date {data['date']} should be a weekday"
+    
+    # Verify values are reasonable
+    assert data["ticker"] == "AAPL"
+    assert data["price"] > 0
+    assert data["market_cap"] > 0
+    assert data["source"] == "financialdatasets.ai"

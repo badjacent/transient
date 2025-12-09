@@ -9,6 +9,7 @@ import pytest
 from datetime import date
 from dotenv import load_dotenv
 from src.data_tools.fd_api import get_price_snapshot
+from src.data_tools.schemas import PriceSnapshot
 
 # Load environment variables
 load_dotenv()
@@ -43,12 +44,16 @@ def test_dividend_unadjusted_prices_after_ex_dividend(api_key):
     
     # Get price directly for date before ex-dividend
     before_result = get_price_snapshot("AAPL", before_ex_div)
-    direct_price = before_result["price"]
+    assert isinstance(before_result, PriceSnapshot)
+    before_data = before_result.model_dump()
+    direct_price = before_data["price"]
     
     # Get price for date after ex-dividend and calculate implied historical price
     after_result = get_price_snapshot("AAPL", after_ex_div)
-    after_price = after_result["price"]
-    return_5d = after_result["return_5d"]
+    assert isinstance(after_result, PriceSnapshot)
+    after_data = after_result.model_dump()
+    after_price = after_data["price"]
+    return_5d = after_data["return_5d"]
     
     # Calculate implied price 5 trading days ago from the return
     # Returns are now multipliers: return_5d = price / price_5d_ago
@@ -78,7 +83,9 @@ def test_dividend_unadjusted_price_on_ex_dividend_date(api_key):
     ex_dividend_date = date(2024, 11, 7)  # Nov 7, 2024 (ex-dividend date)
     
     result = get_price_snapshot("AAPL", ex_dividend_date)
-    price = result["price"]
+    assert isinstance(result, PriceSnapshot)
+    data = result.model_dump()
+    price = data["price"]
     
     # Yahoo Finance close price (unadjusted) for Nov 7, 2024 was $227.48
     # If the API uses adjusted prices, it would be ~$227.23 (227.48 - 0.25)
@@ -108,10 +115,12 @@ def test_dividend_returns_calculation_uses_unadjusted_prices(api_key):
     
     # Get prices
     before_result = get_price_snapshot("AAPL", before_ex_div)
-    before_price = before_result["price"]
+    assert isinstance(before_result, PriceSnapshot)
+    before_price = before_result.model_dump()["price"]
     
     after_result = get_price_snapshot("AAPL", after_ex_div)
-    after_price = after_result["price"]
+    assert isinstance(after_result, PriceSnapshot)
+    after_price = after_result.model_dump()["price"]
     
     # Calculate manual return (unadjusted)
     manual_return = ((after_price - before_price) / before_price) * 100
@@ -119,7 +128,8 @@ def test_dividend_returns_calculation_uses_unadjusted_prices(api_key):
     # Get 1D return from API (Nov 8 should compare to Nov 7, which is after ex-div)
     # But we can also check the 1D return from Nov 6 to Nov 7
     nov7_result = get_price_snapshot("AAPL", date(2024, 11, 7))
-    nov7_price = nov7_result["price"]
+    assert isinstance(nov7_result, PriceSnapshot)
+    nov7_price = nov7_result.model_dump()["price"]
     
     # Calculate return from Nov 6 to Nov 7 (should be unadjusted)
     # Returns are now multipliers: return = new_price / old_price
@@ -135,4 +145,3 @@ def test_dividend_returns_calculation_uses_unadjusted_prices(api_key):
     # Document: The return does NOT include the dividend
     # A $0.25 dividend on a ~$227 stock would be ~0.11% if included
     # But since prices are unadjusted, the return reflects only price movement
-

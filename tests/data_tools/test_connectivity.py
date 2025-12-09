@@ -78,3 +78,4 @@ def test_api_endpoint_availability(api_headers):
     except requests.exceptions.RequestException as e:
         pytest.fail(f"Failed to reach API endpoint: {e}")
 
+

@@ -1,0 +1,485 @@
+[
+  {
+    "filename": "tsla-10k_20201231.htm",
+    "company": "Tesla",
+    "year": 2020,
+    "source_file": "examples/data_tools/filings/tsla-10k_20201231.htm",
+    "num_qa_pairs": 48,
+    "qa_pairs": [
+      {
+        "question": "What were the total revenues of the company in 2020?",
+        "answer": "$31.54 billion",
+        "context": "In 2020, the company recognized total revenues of $31.54 billion, representing an increase of $6.96 billion compared to the prior year."
+      },
+      {
+        "question": "How much did the company's net income attributable to common stockholders amount to in 2020?",
+        "answer": "$721 million",
+        "context": "In 2020, the company's net income attributable to common stockholders was $721 million, representing a favorable change of $1.58 billion compared to the prior year."
+      },
+      {
+        "question": "What was the operating margin of the company in 2020?",
+        "answer": "6.3%",
+        "context": "In 2020, the operating margin was 6.3%, representing a favorable change of 6.6% compared to the prior year."
+      },
+      {
+        "question": "What are the production statuses of Tesla's vehicle models at the Fremont Factory and Gigafactory Shanghai as detailed in a recent update?",
+        "answer": "At the Fremont Factory, the Tesla Model S and Model X, as well as Model 3 and Model Y, are in active production. Similarly, at the Gigafactory Shanghai, the Model 3 and Model Y are also in active production.",
+        "context": "The report updates that the production status for Tesla vehicle models at the Fremont Factory and Gigafactory Shanghai are all active, including Model S, Model X, Model 3, and Model Y"
+      },
+      {
+        "question": "What advancements in vehicle technology did Tesla announce in the context of improving Model S and Model X?",
+        "answer": "Tesla announced updated versions of Model S and Model X that include a redesigned powertrain and other improvements.",
+        "context": "Tesla has introduced updated versions of Model S and Model X featuring a redesigned powertrain and other enhancements as part of their technological progress."
+      },
+      {
+        "question": "What are Tesla's objectives regarding its new battery cell production strategy?",
+        "answer": "Tesla aims to manufacture its own battery cells to achieve high-volume output, reduce capital and production costs, and extend the range of their batteries. This strategy, combined with sourcing cells from suppliers, is intended to address any potential supply constraints and support the company's growth.",
+        "context": "Tesla is focusing on developing and manufacturing its own battery cells to target high-volume output, lower capital and production costs, and longer battery range, alongside using cells from suppliers to mitigate any potential constraints."
+      },
+      {
+        "question": "What range of capital expenditures does the company expect in 2021 and each of the next two fiscal years?",
+        "answer": "$4.50 to $6.00 billion",
+        "context": "The company currently expects capital expenditures to be $4.50 to $6.00 billion in 2021 and each of the next two fiscal years."
+      },
+      {
+        "question": "How did the company strengthen its liquidity in December 2020?",
+        "answer": "Through an at-the-market offering of common stock, with net proceeds of approximately $4.99 billion.",
+        "context": "The company strengthened its liquidity further through an at-the-market offering of common stock in December 2020, with net proceeds to the company of approximately $4.99 billion."
+      },
+      {
+        "question": "What is the company's investment in bitcoin as per its updated investment policy?",
+        "answer": "An aggregate of $1.50 billion.",
+        "context": "The company invested an aggregate of $1.50 billion in bitcoin under its updated investment policy."
+      },
+      {
+        "question": "What accounting rule applies to indefinite-lived intangible assets regarding impairment charges?",
+        "answer": "Under applicable accounting rules, any decrease in the fair values of indefinite-lived intangible assets below their carrying values requires the recognition of impairment charges.",
+        "context": "Assets considered indefinite-lived intangible assets under accounting rules require recognition of impairment charges if their fair values decrease below carrying values subsequent to acquisition."
+      },
+      {
+        "question": "What factors influence the preparation of consolidated financial statements under GAAP?",
+        "answer": "The preparation of consolidated financial statements under GAAP involves making estimates and assumptions that affect reported amounts of assets, liabilities, revenues, costs, and expenses, based on historical experience and reasonable assumptions under the circumstances.",
+        "context": "The consolidated financial statements are prepared in accordance with GAAP, requiring estimates and assumptions that influence the reported financial data, based on historical experience and other reasonable assumptions."
+      },
+      {
+        "question": "How does the COVID-19 pandemic affect the financial estimates used in the Annual Report on Form 10-K?",
+        "answer": "The COVID-19 pandemic created uncertainty and disruption, potentially impacting estimates used for determining economic incentives for resale value guarantees, sales return reserves, collectability of accounts receivable, and other financial instruments.",
+        "context": "Due to the COVID-19 pandemic, there has been uncertainty and disruption affecting financial estimates like economic incentives, sales return reserves, and the collectability of accounts receivable mentioned in the Annual Report on Form 10-K."
+      },
+      {
+        "question": "What is the policy regarding taxes collected from a customer in the context of automotive contracts?",
+        "answer": "Taxes collected from a customer are excluded from the transaction price of automotive contracts.",
+        "context": "The company's policy is to exclude taxes collected from a customer from the transaction price of automotive contracts."
+      },
+      {
+        "question": "How does the company handle revenue recognition for automotive sales with resale value guarantees?",
+        "answer": "The company recognizes revenue when control of the vehicle transfers to the customer upon delivery, treating it as a sale with a right of return since the customer is not believed to have a significant economic incentive to exercise the resale value guarantee.",
+        "context": "With the exception of certain leasing transactions, revenue from automotive sales with resale value guarantees is recognized when control transfers upon delivery to customers, treating these as sales with a right of return due to the lack of significant economic incentive for customers to exercise the guarantee."
+      },
+      {
+        "question": "What are the accounting treatments for automotive regulatory credits?",
+        "answer": "Revenue from the sale of automotive regulatory credits is recognized at the time control of the regulatory credits transfers to the purchasing party, and it is categorized as automotive sales revenue in the consolidated statements of operations.",
+        "context": "Automotive regulatory credits are earned under various regulations, and revenue is recognized when control of these credits is transferred to the purchasing party, categorized as automotive sales revenue."
+      },
+      {
+        "question": "What accounting standard did a company adopt on January 1, 2019 for new leasing agreements?",
+        "answer": "ASC 842",
+        "context": "With the adoption of ASC 842 on January 1, 2019, all new agreements under this program are accounted for as operating leases under ASC 842 and there was no material change in the timing and amount of revenue recognized over the term."
+      },
+      {
+        "question": "How are cash flows for new leasing agreements classified in the consolidated statements of cash flows following the adoption of a new accounting standard in 2019?",
+        "answer": "As operating cash activities",
+        "context": "With the adoption of ASC 842 on January 1, 2019, all new agreements under this program are accounted for as operating leases under ASC 842 and any cash flows for new agreements are classified as operating cash activities in the consolidated statements of cash flows."
+      },
+      {
+        "question": "How is interest income recorded for sales-type automotive leases under ASC 842?",
+        "answer": "Over time as customers are invoiced on a monthly basis",
+        "context": "Interest income based on the implicit rate in the lease is recorded to automotive leasing revenue over time as customers are invoiced on a monthly basis."
+      },
+      {
+        "question": "What method is used to recognize revenue from energy storage system sales and solar energy system sales?",
+        "answer": "Revenue from energy storage system sales is recognized over time using the percentage of completion method based on cost incurred as a percentage of total estimated contract costs. For solar energy system sales, revenue is recognized based on cost incurred as a percentage of total estimated labor hours.",
+        "context": "Revenue from such contracts is recognized over time using the percentage of completion method based on cost incurred as a percentage of total estimated contract costs for energy storage system sales and as a percentage of total estimated labor hours for solar energy system sales."
+      },
+      {
+        "question": "How is revenue recognized for operations and maintenance services in energy storage system contracts?",
+        "answer": "Operations and maintenance service revenue for energy storage systems is recognized upon delivery of the service.",
+        "context": "Operations and maintenance service revenue is recognized ratably over the respective contract term for solar energy system sales and upon delivery of the service for energy storage system sales."
+      },
+      {
+        "question": "When is revenue recognized for projects under solar energy system contracts where the percentage of completion method does not apply?",
+        "answer": "Revenue is recognized when the project has received permission to operate from the utility.",
+        "context": "For certain large commercial and utility grade solar energy systems where the percentage of completion method does not apply, revenue is recognized when the project has received permission to operate from the utility for solar energy systems."
+      },
+      {
+        "question": "How are inventories valued in financial statements?",
+        "answer": "Inventories are valued at the lower of cost or net realizable value. Cost is computed using standard cost for specific products, which approximates actual cost on a first-in, first-out basis.",
+        "context": "Inventories are stated at the lower of cost or net realizable value, using various methods such as standard cost, which approximates actual cost based on a first-in, first-out basis."
+      },
+      {
+        "question": "What factors are considered in determining the need for inventory write-downs?",
+        "answer": "Inventory write-downs are determined based on assumptions about current and future demand forecasts. If inventory on-hand exceeds future demand forecasts, excess amounts are written off.",
+        "context": "Inventory write-downs are recorded based on assumptions about current and future demand forecasts. Excess inventory beyond future demand forecasts leads to write-offs."
+      },
+      {
+        "question": "How is the warranty reserve estimated for products sold?",
+        "answer": "The warranty reserve for products sold is estimated based on actual claims incurred to date and projections of the nature, frequency, and costs of future claims. These estimates are based on prior sales history and anticipated warranty claims.",
+        "context": "The warranty reserve is accrued based on actual historical claims and estimated future claims, reflecting the projected costs related to warranties."
+      },
+      {
+        "question": "What might cause a company to record a cumulative catch-up expense for stock-based compensation?",
+        "answer": "If additional operational milestones become probable, a company might record a cumulative catch-up expense for stock-based compensation to account for the service provided since the grant date.",
+        "context": "If additional operational milestones become probable, stock-based compensation expense will be recorded in the period it becomes probable including cumulative catch-up expense for the service provided since the grant date."
+      },
+      {
+        "question": "How does a company estimate the fair value of its stock-based awards?",
+        "answer": "A company estimates the fair value of its stock-based awards using Monte Carlo simulations on the grant date.",
+        "context": "The fair value of such awards is estimated on the grant date using Monte Carlo simulations."
+      },
+      {
+        "question": "What factors may significantly change a company’s estimate of stock-based compensation expense?",
+        "answer": "Significant changes in the company’s stock-based compensation expense estimates can result from different calculations of volatilities and expected lives, influenced by accumulating more employee stock-based awards data and incorporating market data related to its common stock.",
+        "context": "As we accumulate additional employee stock-based awards data over time and as we incorporate market data related to our common stock, we may calculate significantly different volatilities and expected lives, which could materially impact the valuation of our stock-based awards and the stock-based compensation expense that we will recognize in future periods."
+      },
+      {
+        "question": "What accounting method is used to calculate the balances of noncontrolling interests and redeemable noncontrolling interests at each balance sheet date?",
+        "answer": "Hypothetical Liquidation at Book Value (HLBV) method",
+        "context": "The amount of the noncontrolling interests and redeemable noncontrolling interests in the net assets of the funds at each balance sheet date is determined using the Hypothetical Liquidation at Book Value (HLBV) method."
+      },
+      {
+        "question": "How did the COVID-19 pandemic impact the company's financial results in 2020?",
+        "answer": "The COVID-19 pandemic negatively impacted the company's financial results in 2020 due to production limitations and reduced operations, leading to idle capacity charges. However, cost savings initiatives and payroll related benefits helped to offset the financial impact.",
+        "context": "The COVID-19 pandemic caused production limitations and reduced operations due to closed third party and government operations, resulting in financial disruptions which were partially mitigated by the company's cost savings initiatives and payroll related benefits."
+      },
+      {
+        "question": "By what percentage did automotive sales revenue increase from 2018 to 2020?",
+        "answer": "31%",
+        "context": "Automotive sales revenue increased by 31% from $17,632 million in 2018 to $26,184 million in 2020."
+      },
+      {
+        "question": "What was the percentage increase in automotive sales revenue in the year ended December 31, 2020 compared to the previous year?",
+        "answer": "31%",
+        "context": "Automotive sales revenue increased $6.23 billion, or 31%, in the year ended December 31, 2020, mainly because of the increase in Model 3 and Model Y cash deliveries."
+      },
+      {
+        "question": "How much did services and other revenue grow in the year ended December 31, 2020 compared to the previous year?",
+        "answer": "$80 million or 4%",
+        "context": "Services and other revenue increased $80 million, or 4%, in the year ended December 31, 2020 compared to the previous year, primarily due to an increase in after-sales vehicle services and other factors."
+      },
+      {
+        "question": "What was the percentage increase in cost of automotive leasing revenue in the year ended December 31, 2020 compared to the previous year?",
+        "answer": "23%",
+        "context": "Cost of automotive leasing revenue increased $104 million, or 23%, in the year ended December 31, 2020 as compared to the year ended December 31, 2019, primarily due to an increase in cumulative vehicles under our direct operating lease program and the introduction of direct sales-type leasing programs."
+      },
+      {
+        "question": "How much did the gross margin for total automotive increase in the year ended December 31, 2020 compared to the previous year?",
+        "answer": "5%",
+        "context": "Gross margin for total automotive increased from 21% to 26% in the year ended December 31, 2020 as compared to the year ended December 31, 2019, primarily due to an improvement of Model 3 gross margin primarily from lower material, manufacturing, freight and duty costs from localized procurement and manufacturing in China."
+      },
+      {
+        "question": "How did the gross margin for Tesla's automotive and services segment change from 2019 to 2020?",
+        "answer": "It increased from 17% to 22%.",
+        "context": "Gross margin for total automotive & services and other segment increased from 17% to 22% in the year ended December 31, 2020 as compared to the year ended December 31, 2019, primarily due to the automotive gross margin impacts discussed above and a lower proportion of services and other, which operated at a lower gross margin than our automotive business, within the segment in the year ended December 31, 2020."
+      },
+      {
+        "question": "What caused the increase in R&D expenses for Tesla in 2020 compared to 2019?",
+        "answer": "The $148 million increase was primarily due to a $62 million increase in expensed materials, a $61 million increase in stock-based compensation expense, and increases in facilities, freight, depreciation, and employee and labor related expenses.",
+        "context": "R&D expenses increased $148 million, or 11%, in the year ended December 31, 2020 compared to the year ended December 31, 2019. The increase was primarily due to a $62 million increase in expensed materials, a $61 million increase in stock-based compensation expense primarily related to the issuance of equity awards in fiscal year 2020 at higher grant date fair values due to our increased share price, a $20 million increase in facilities, freight and depreciation expenses, and a $20 million increase in employee and labor related expenses."
+      },
+      {
+        "question": "What was the percentage change in R&D expenses as a percentage of revenue from 2019 to 2020?",
+        "answer": "Decreased from 5.5% to 4.7%",
+        "context": "R&D expenses as a percentage of revenue decreased from 5.5% to 4.7% in the year ended December 31, 2020 as compared to the year ended December 31, 2019. The decrease is attributed primarily to an increase in total revenues from expanding sales, offset by an increase in R&D expenses."
+      },
+      {
+        "question": "How much did SG&A expenses increase in the year ended December 31, 2020 compared to the previous year?",
+        "answer": "$499 million",
+        "context": "SG&A expenses increased by $499 million, or 19%, in the year ended December 31, 2020 compared to the year ended December 31, 2019. This increase was primarily due to a rise in stock-based compensation expense, among other factors."
+      },
+      {
+        "question": "What was the percentage increase in interest expense for the year ending December 31, 2020 compared to the previous year?",
+        "answer": "9%",
+        "context": "Interest expense increased by $63 million, or 9%, in the year ended December 31, 2020 compared to the year ended December 31, 2019."
+      },
+      {
+        "question": "What primary factors contributed to the increase in interest expense for the year ending December 31, 2020?",
+        "answer": "The increase was primarily due to $105 million of losses on extinguishment of debt from early conversions on convertible senior notes and partially offset by a decrease in interest due to a lower average interest rate and an increase of $17 million in the amount of interest capitalized.",
+        "context": "Interest expense increased by $63 million in the year ended December 31, 2020, primarily due to $105 million of losses on extinguishment of debt in fiscal year 2020 from early conversions on our convertible senior notes, partially offset by a decrease in interest expense due to a decrease in our weighted average interest rate as compared to the prior year and an increase of $17 million in the amount of interest we capitalized from the consolidated statements of operations to property, plant and equipment on the consolidated balance sheets."
+      },
+      {
+        "question": "What was the percentage increase in net income attributable to noncontrolling interests and redeemable noncontrolling interests from 2019 to 2020?",
+        "answer": "62%",
+        "context": "Net income (loss) attributable to noncontrolling interests and redeemable noncontrolling interests increased by $54 million, or 62%, in the year ended December 31, 2020 as compared to the year ended December 31, 2019."
+      },
+      {
+        "question": "How much cash and cash equivalents did the company have as of December 31, 2020?",
+        "answer": "$19.38 billion",
+        "context": "As of December 31, 2020, we had $19.38 billion of cash and cash equivalents."
+      },
+      {
+        "question": "What were the main factors contributing to the increase in net cash provided by operating activities for the year ended December 31, 2020 compared to the previous year?",
+        "answer": "The increase in net cash provided by operating activities was primarily due to the increase in net income excluding non-cash expenses and gains, the decrease in net operating assets and liabilities, and repayment of the 0.25% Convertible Senior Notes due in 2019 classified as an operating activity.",
+        "context": "Net cash provided by operating activities increased by $3.54 billion to $5.94 billion during the year ended December 31, 2020, from $2.40 billion during the year ended December 31, 2019.  This increase was primarily due to the increase in net income excluding non-cash expenses and gains of $2.82 billion, the decrease in net operating assets and liabilities of $533 million, and $188 million of the repayment of our 0.25% Convertible Senior Notes due in 2019 during the three months ended March 31, 2019, which was classified as an operating activity."
+      },
+      {
+        "question": "How did Tesla's cash flows from investing activities change from 2019 to 2020?",
+        "answer": "Cash flows from investing activities changed significantly with an increase in capital expenditures for the construction and expansion of Gigafactories and Model Y production, partially offset by decreases in business combinations and investment in solar energy systems.",
+        "context": "Cash flows from investing activities and their variability across each period related primarily to capital expenditures, which were $3.16 billion for the year ended December 31, 2020, mainly for Model Y production expansion at the Fremont Factory, expansion of Gigafactory Shanghai and construction of Gigafactory Berlin and Gigafactory Texas, and $1.33 billion for the year ended December 31, 2019, mainly for Gigafactory Shanghai construction, Model 3 production ramp and Model Y preparations. The increase in capital expenditures was partially offset by decreases of $32 million in business combinations, net of cash acquired, and $30 million of design, acquisition and installation of solar energy systems when compared to the prior year."
+      },
+      {
+        "question": "What were the main uses of capital expenditures mentioned in the narrative for the year ended December 31, 2020?",
+        "answer": "The main uses of capital expenditures were for the Gigafactory Shanghai construction, Model 3 production ramp, and Model Y preparations.",
+        "context": "The narrative mentions Gigafactory Shanghai construction, Model 3 production ramp, and Model Y preparations as the main uses of the increased capital expenditures for 2020."
+      },
+      {
+        "question": "How much did government grants contribute to the manufacturing equipment investments at Gigafactory Shanghai for the years ended December 31, 2020 and 2019?",
+        "answer": "Government grants contributed $123 million in 2020 and $46 million in 2019 to the manufacturing equipment investments at Gigafactory Shanghai.",
+        "context": "The text states that government grants of $123 million and $46 million were received in connection with manufacturing equipment investments at Gigafactory Shanghai for the years ended December 31, 2020 and 2019, respectively."
+      },
+      {
+        "question": "What is the total amount of non-recourse debt repayments, including scheduled interest, that was due for the year ended December 31, 2020?",
+        "answer": "$5.16 billion",
+        "context": "This includes non-recourse debt repayments, including scheduled interest, of $5.16 billion. Non-recourse debt refers to debt that is recourse to only assets of our subsidiaries."
+      },
+      {
+        "question": "How much could the company potentially have to pay over the next five years if customers exercise their resale value guarantees or buyback options?",
+        "answer": "$1.84 billion",
+        "context": "The maximum amount the company could be required to pay under resale value guarantee or buyback programs, should customers exercise their options, would be $1.84 billion over the next five years."
+      }
+    ]
+  },
+  {
+    "filename": "aapl-20230930.htm",
+    "company": "Apple",
+    "year": 2023,
+    "source_file": "examples/data_tools/filings/aapl-20230930.htm",
+    "num_qa_pairs": 45,
+    "qa_pairs": [
+      {
+        "question": "What was the Company's total net sales and net income in 2023?",
+        "answer": "The Company's total net sales were $383.3 billion and net income was $97.0 billion during 2023.",
+        "context": "The Company's financial performance in 2023 included total net sales of $383.3 billion and a net income of $97.0 billion."
+      },
+      {
+        "question": "How did the foreign currency impact the Company's net sales in 2023 compared to 2022?",
+        "answer": "The weakness in foreign currencies relative to the U.S. dollar accounted for more than the entire year-over-year decrease in total net sales.",
+        "context": "During 2023, the total net sales of the Company decreased by 3% or $11.0 billion compared to 2022, primarily due to the weakness in foreign currencies relative to the U.S. dollar."
+      },
+      {
+        "question": "What major product announcements did the Company make in the first quarter of fiscal year 2023?",
+        "answer": "In the first quarter of fiscal year 2023, the Company announced the iPad and iPad Pro, the next-generation Apple TV 4K, and the MLS Season Pass.",
+        "context": "Significant announcements during the first quarter of fiscal year 2023 included the iPad and iPad Pro, the next-generation Apple TV 4K, and a subscription streaming service for Major League Soccer known as MLS Season Pass."
+      },
+      {
+        "question": "What changes did the Company make to its dividend and share repurchase program in May 2023?",
+        "answer": "In May 2023, the Company raised its quarterly dividend from $0.23 to $0.24 per share and announced a new share repurchase program of up to $90 billion.",
+        "context": "The Company announced a new share repurchase program of up to $90 billion and increased its quarterly dividend from $0.23 to $0.24 per share beginning in May 2023."
+      },
+      {
+        "question": "How did the Company's fiscal year length vary in 2023 compared to previous years?",
+        "answer": "The Company's fiscal year 2023 spanned 53 weeks, whereas fiscal years 2022 and 2021 each spanned 52 weeks.",
+        "context": "Fiscal year 2023 for the Company included an additional week, totaling 53 weeks, compared to the standard 52 weeks in fiscal years 2022 and 2021."
+      },
+      {
+        "question": "What was the overall percentage change in the Company's total net sales in 2023 compared to 2022?",
+        "answer": "The Company's total net sales decreased by 3% in 2023 compared to 2022.",
+        "context": "Total net sales of the Company experienced a 3% decrease in 2023, totaling $383.285 billion, compared to $394.328 billion in 2022."
+      },
+      {
+        "question": "By how much did the Americas net sales decrease in 2023 compared to 2022?",
+        "answer": "Americas net sales decreased by 4% or $7.1 billion in 2023 compared to 2022.",
+        "context": "In 2023, Americas net sales for the Company decreased by 4%, amounting to a $7.1 billion reduction from the previous year."
+      },
+      {
+        "question": "What were the key software updates announced by the Company in the third quarter of 2023?",
+        "answer": "In the third quarter of 2023, the Company announced iOS 17, macOS Sonoma, iPadOS 17, tvOS 17, and watchOS 10.",
+        "context": "Key software updates in the third quarter of 2023 included iOS 17, macOS Sonoma, iPadOS 17, tvOS 17, and watchOS 10."
+      },
+      {
+        "question": "What was the percentage change in net sales in Japan in 2023 compared to 2022?",
+        "answer": "Net sales in Japan decreased by 7% in 2023 compared to 2022.",
+        "context": "During 2023, the Company experienced a 7% decrease in net sales in Japan, down from the previous year."
+      },
+      {
+        "question": "How much did the Company spend on stock repurchases and dividends in 2023?",
+        "answer": "During 2023, the Company repurchased $76.6 billion of its common stock and paid dividends and dividend equivalents of $15.0 billion.",
+        "context": "In the fiscal year 2023, the Company engaged in significant shareholder returns by repurchasing $76.6 billion in common stock and distributing $15.0 billion in dividends and dividend equivalents."
+      },
+      {
+        "question": "How much did America's net sales decrease in 2023 compared to 2022?",
+        "answer": "$7.1 billion",
+        "context": "Americas net sales decreased 4% or $7.1 billion during 2023 compared to 2022."
+      },
+      {
+        "question": "What factors contributed to the decrease in Americas net sales in 2023?",
+        "answer": "The decrease was due to lower net sales of iPhone and Mac, partially offset by higher net sales of Services.",
+        "context": "Americas net sales decreased 4% or $7.1 billion during 2023 compared to 2022 due to lower net sales of iPhone and Mac, partially offset by higher net sales of Services."
+      },
+      {
+        "question": "What was the percentage change in Japan's net sales in 2023 compared to 2022?",
+        "answer": "7% decrease",
+        "context": "Japan net sales decreased 7% or $1.7 billion during 2023 compared to 2022."
+      },
+      {
+        "question": "How did the weakness in the yen impact Japan's net sales in 2023?",
+        "answer": "It accounted for more than the entire year-over-year decrease in Japan's net sales.",
+        "context": "The weakness in the yen relative to the U.S. dollar accounted for more than the entire year-over-year decrease in Japan net sales."
+      },
+      {
+        "question": "What was the percentage increase in net sales for the Rest of Asia Pacific in 2023?",
+        "answer": "1% increase",
+        "context": "Rest of Asia Pacific net sales increased 1% or $240 million during 2023 compared to 2022."
+      },
+      {
+        "question": "What contributed to the increase in net sales for the Rest of Asia Pacific in 2023?",
+        "answer": "The increase consisted of higher net sales of iPhone and Services, partially offset by lower net sales of Mac and iPad.",
+        "context": "The net sales increase consisted of higher net sales of iPhone and Services, partially offset by lower net sales of Mac and iPad."
+      },
+      {
+        "question": "By how much did iPhone's net sales decrease in 2023 compared to 2022?",
+        "answer": "$4.9 billion",
+        "context": "iPhone net sales decreased 2% or $4.9 billion during 2023 compared to 2022."
+      },
+      {
+        "question": "What was the percentage decrease in Mac net sales for 2023 compared to 2022?",
+        "answer": "27%",
+        "context": "Mac net sales decreased 27% or $10.8 billion during 2023 compared to 2022."
+      },
+      {
+        "question": "How much did iPad's net sales decrease in 2023 compared to 2022?",
+        "answer": "$1.0 billion",
+        "context": "iPad net sales decreased 3% or $1.0 billion during 2023 compared to 2022."
+      },
+      {
+        "question": "By what percentage did Services net sales increase in 2023 compared to 2022?",
+        "answer": "9%",
+        "context": "Services net sales increased 9% or $7.1 billion during 2023 compared to 2022."
+      },
+      {
+        "question": "What was the gross margin for products in 2023?",
+        "answer": "$108,803 million",
+        "context": "In 2023, the gross margin for products was $108,803 million."
+      },
+      {
+        "question": "How did the gross margin for services change from 2021 to 2023?",
+        "answer": "It increased from $47,710 million in 2021 to $60,345 million in 2023.",
+        "context": "The services gross margin increased from $47,710 million in 2021 to $56,054 million in 2022 and further to $60,345 million in 2023."
+      },
+      {
+        "question": "What was the percentage change in research and development expenses from 2021 to 2023?",
+        "answer": "36% increase",
+        "context": "Research and development expenses increased by 36% from $21,914 million in 2021 to $29,915 million in 2023."
+      },
+      {
+        "question": "Why did the products gross margin decrease in 2023 compared to 2022?",
+        "answer": "Due to the weakness in foreign currencies relative to the U.S. dollar and lower products volume, partially offset by cost savings and a different products mix.",
+        "context": "Products gross margin decreased in 2023 compared to 2022 due to the weakness in foreign currencies relative to the U.S. dollar and lower products volume, partially offset by cost savings and a different products mix."
+      },
+      {
+        "question": "What factors caused the services gross margin percentage to decrease in 2023?",
+        "answer": "Higher services costs and the weakness in foreign currencies relative to the U.S. dollar, partially offset by a different services mix.",
+        "context": "Services gross margin percentage decreased during 2023 compared to 2022 due to higher services costs and the weakness in foreign currencies relative to the U.S. dollar, partially offset by a different services mix."
+      },
+      {
+        "question": "What was the total operating expenses percentage of total net sales in 2023?",
+        "answer": "14%",
+        "context": "The total operating expenses as a percentage of total net sales was 14% in 2023."
+      },
+      {
+        "question": "What were the provisions for income taxes in 2023?",
+        "answer": "$16,741 million",
+        "context": "The provision for income taxes was $16,741 million in 2023."
+      },
+      {
+        "question": "What factors influenced the decrease in the effective tax rate in 2023 compared to 2022?",
+        "answer": "A lower effective tax rate on foreign earnings and the impact of U.S. federal R&D credit, partially offset by lower tax benefits from share-based compensation and state income taxes.",
+        "context": "The Company's effective tax rate for 2023 was lower compared to 2022 due primarily to a lower effective tax rate on foreign earnings and the impact of the U.S. federal R&D credit, partially offset by state income taxes and lower tax benefits from share-based compensation."
+      },
+      {
+        "question": "What is the significance of September 30, 2023, in the context of the company's financial status?",
+        "answer": "As of September 30, 2023, the company had $148.3 billion in cash, cash equivalents, and unrestricted marketable securities.",
+        "context": "The company's balances of cash, cash equivalents, and unrestricted marketable securities totaled $148.3 billion as of September 30, 2023."
+      },
+      {
+        "question": "Why are the company's gross margins expected to face volatility and downward pressure?",
+        "answer": "Due to a variety of factors including those discussed under the heading 'Risk Factors' in Part I, Item 1A of the Form 10-K.",
+        "context": "The company believes that, in general, gross margins will be subject to volatility and downward pressure influenced by various factors as discussed under 'Risk Factors'."
+      },
+      {
+        "question": "What was the total amount of cash equivalents and unrestricted marketable securities held by the company as of September 30, 2023?",
+        "answer": "$148.3 billion",
+        "context": "The company had cash equivalents and unrestricted marketable securities totaling $148.3 billion as of September 30, 2023."
+      },
+      {
+        "question": "How much in fixed-rate notes did the company have outstanding as of September 30, 2023?",
+        "answer": "$106.6 billion",
+        "context": "As of September 30, 2023, the company had outstanding fixed-rate notes worth an aggregate principal amount of $106.6 billion."
+      },
+      {
+        "question": "What amount of the company's fixed-rate notes is payable within the next 12 months from September 30, 2023?",
+        "answer": "$9.9 billion",
+        "context": "The company's fixed-rate notes have $9.9 billion payable within 12 months from September 30, 2023."
+      },
+      {
+        "question": "What is the total future interest payment associated with the company's fixed-rate notes?",
+        "answer": "$41.1 billion",
+        "context": "Future interest payments associated with the company's fixed-rate notes total $41.1 billion."
+      },
+      {
+        "question": "What amount of commercial paper did the company have outstanding as of September 30, 2023?",
+        "answer": "$6.0 billion",
+        "context": "As of September 30, 2023, the company had $6.0 billion of commercial paper outstanding."
+      },
+      {
+        "question": "What are the total fixed lease payment obligations of the company as of September 30, 2023?",
+        "answer": "$15.8 billion",
+        "context": "The company had fixed lease payment obligations totaling $15.8 billion as of September 30, 2023."
+      },
+      {
+        "question": "What amount is the company expected to pay for the deemed repatriation tax within the next 12 months from September 30, 2023?",
+        "answer": "$6.5 billion",
+        "context": "As of September 30, 2023, the company is expected to pay $6.5 billion of the deemed repatriation tax within the next 12 months."
+      },
+      {
+        "question": "How much are the company's manufacturing purchase obligations as of September 30, 2023?",
+        "answer": "$53.1 billion",
+        "context": "The company's manufacturing purchase obligations as of September 30, 2023, total $53.1 billion."
+      },
+      {
+        "question": "What amount of the company's other purchase obligations is payable within 12 months as of September 30, 2023?",
+        "answer": "$5.6 billion",
+        "context": "As of September 30, 2023, the company has other purchase obligations totaling $21.9 billion, with $5.6 billion payable within 12 months."
+      },
+      {
+        "question": "What was the quarterly cash dividend per share of the company as of September 30, 2023?",
+        "answer": "$0.24",
+        "context": "As of September 30, 2023, the company's quarterly cash dividend was $0.24 per share."
+      },
+      {
+        "question": "What is the criteria for the company to record a liability for legal proceedings?",
+        "answer": "The company records a liability when it is probable that a loss has been incurred and the amount of the loss can be reasonably estimated.",
+        "context": "The Company records a liability when it is probable that a loss has been incurred and the amount is reasonably estimable, the determination of which requires significant judgment."
+      },
+      {
+        "question": "What could the impact be if legal matters are resolved in a manner inconsistent with management’s expectations?",
+        "answer": "Resolution of legal matters in a manner inconsistent with management’s expectations could have a material impact on the Company’s financial condition and operating results.",
+        "context": "Resolution of legal matters in a manner inconsistent with management’s expectations could have a material impact on the Company’s financial condition and operating results."
+      },
+      {
+        "question": "What type of proceedings and claims does the company face?",
+        "answer": "The company is subject to various legal proceedings and claims that arise in the ordinary course of business.",
+        "context": "The Company is subject to various legal proceedings and claims that arise in the ordinary course of business."
+      },
+      {
+        "question": "How uncertain are the outcomes of the legal proceedings the Company faces?",
+        "answer": "The outcomes of the legal proceedings the company faces are inherently uncertain.",
+        "context": "The Company is subject to various legal proceedings and claims that arise in the ordinary course of business, the outcomes of which are inherently uncertain."
+      },
+      {
+        "question": "What does the determination of a probable loss require from the company?",
+        "answer": "The determination of a probable loss requires significant judgment by the company.",
+        "context": "The Company records a liability when it is probable that a loss has been incurred and the amount is reasonably estimable, the determination of which requires significant judgment."
+      }
+    ]
+  }
+]

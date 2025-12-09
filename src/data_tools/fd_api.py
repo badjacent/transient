@@ -1,10 +1,11 @@
 """FinancialDatasets.ai API client for fetching equity market data."""
 
 import os
-from typing import Dict
+from typing import Dict, Optional
 from datetime import date, timedelta
 import requests
 from dotenv import load_dotenv
+from src.data_tools.schemas import CompanyFacts, EquitySnapshot, PriceSnapshot
 
 # Load environment variables
 load_dotenv()
@@ -28,7 +29,7 @@ def _get_headers() -> Dict[str, str]:
     return {"X-API-KEY": _get_api_key()}
 
 
-def get_price_snapshot(ticker: str, end_date: date) -> Dict:
+def get_price_snapshot(ticker: str, end_date: date) -> PriceSnapshot:
     """
     Get price snapshot data for a specific date.
     
@@ -50,15 +51,7 @@ def get_price_snapshot(ticker: str, end_date: date) -> Dict:
         end_date: End date for historical data as a date object
         
     Returns:
-        Dictionary with the following structure:
-        {
-            "ticker": str,
-            "price": float,  # Last price on end_date
-            "return_1d": float,  # Return multiplier vs previous trading day (1.01 = up 1%)
-            "return_5d": float,  # Return multiplier vs 5 trading days ago (1.01 = up 1%)
-            "date": str,  # End date in YYYY-MM-DD format
-            "source": "financialdatasets.ai"
-        }
+        PriceSnapshot model with price and return data for the requested date.
         
     Raises:
         ValueError: If API key is missing, ticker is invalid, or date format is invalid
@@ -117,26 +110,41 @@ def get_price_snapshot(ticker: str, end_date: date) -> Dict:
             timeout=10
         )
         
-        if prices_response.status_code == 200:
-            prices_data = prices_response.json()
-            
-            # Handle historical prices endpoint response: {"prices": [...], "next_page_url": "..."}
-            if isinstance(prices_data, dict) and "prices" in prices_data:
-                price_list = prices_data["prices"]
-            elif isinstance(prices_data, list):
-                price_list = prices_data
-            else:
-                price_list = []
-            
-            # Extract close prices in chronological order
-            # Exclude days with zero volume (non-trading days)
-            for price_item in price_list:
-                if isinstance(price_item, dict):
-                    volume = price_item.get("volume", 0)
-                    close = price_item.get("close")
-                    # Only include days with trading volume > 0
-                    if close is not None and volume and volume > 0:
-                        close_prices.append(float(close))
+        # Check for API errors (non-200 status codes)
+        if prices_response.status_code != 200:
+            error_msg = f"API returned status {prices_response.status_code}"
+            try:
+                error_data = prices_response.json()
+                if "message" in error_data:
+                    error_msg = error_data["message"]
+                elif "error" in error_data:
+                    error_msg = error_data["error"]
+            except:
+                error_msg = prices_response.text or error_msg
+            raise requests.exceptions.RequestException(
+                f"Failed to fetch prices from FinancialDatasets.ai API for {ticker} "
+                f"on date {date_str}: {error_msg}"
+            )
+        
+        prices_data = prices_response.json()
+        
+        # Handle historical prices endpoint response: {"prices": [...], "next_page_url": "..."}
+        if isinstance(prices_data, dict) and "prices" in prices_data:
+            price_list = prices_data["prices"]
+        elif isinstance(prices_data, list):
+            price_list = prices_data
+        else:
+            price_list = []
+        
+        # Extract close prices in chronological order
+        # Exclude days with zero volume (non-trading days)
+        for price_item in price_list:
+            if isinstance(price_item, dict):
+                volume = price_item.get("volume", 0)
+                close = price_item.get("close")
+                # Only include days with trading volume > 0
+                if close is not None and volume and volume > 0:
+                    close_prices.append(float(close))
         
         
         # Calculate returns from the chronological list of close prices
@@ -179,7 +187,7 @@ def get_price_snapshot(ticker: str, end_date: date) -> Dict:
         if "return_5d" not in snapshot:
             snapshot["return_5d"] = 1.0  # 1.0 means no change
         
-        return snapshot
+        return PriceSnapshot(**snapshot)
         
     except requests.exceptions.RequestException as e:
         raise requests.exceptions.RequestException(
@@ -192,7 +200,7 @@ def get_price_snapshot(ticker: str, end_date: date) -> Dict:
         ) from e
 
 
-def get_company_facts(ticker: str) -> Dict:
+def get_company_facts(ticker: str) -> CompanyFacts:
     """
     Get company facts data (current/static information without explicit dates).
     
@@ -204,14 +212,7 @@ def get_company_facts(ticker: str) -> Dict:
         ticker: Stock ticker symbol (e.g., "AAPL", "MSFT")
         
     Returns:
-        Dictionary with the following structure:
-        {
-            "ticker": str,
-            "market_cap": float,
-            "sector": str,
-            "industry": str,
-            "source": "financialdatasets.ai"
-        }
+        CompanyFacts model with market cap and sector/industry metadata.
         
     Raises:
         ValueError: If API key is missing or ticker is invalid
@@ -258,7 +259,7 @@ def get_company_facts(ticker: str) -> Dict:
         if "industry" not in facts:
             facts["industry"] = ""
         
-        return facts
+        return CompanyFacts(**facts)
         
     except requests.exceptions.RequestException as e:
         raise requests.exceptions.RequestException(
@@ -270,7 +271,31 @@ def get_company_facts(ticker: str) -> Dict:
         ) from e
 
 
-def get_equity_snapshot(ticker: str, end_date: date) -> Dict:
+def _get_previous_weekday(target_date: Optional[date] = None) -> date:
+    """
+    Get the previous weekday (Monday-Friday) from the given date.
+    
+    If target_date is None, uses today's date.
+    If target_date is already a weekday, returns target_date.
+    Otherwise, goes back until finding a weekday (Monday=0, Sunday=6).
+    
+    Args:
+        target_date: Date to start from (defaults to today if None)
+        
+    Returns:
+        The most recent weekday (Monday-Friday) on or before target_date
+    """
+    if target_date is None:
+        target_date = date.today()
+    
+    # Keep going back until we hit a weekday (Monday=0 through Friday=4)
+    while target_date.weekday() >= 5:  # Saturday=5, Sunday=6
+        target_date -= timedelta(days=1)
+    
+    return target_date
+
+
+def get_equity_snapshot(ticker: str, end_date: Optional[date] = None) -> EquitySnapshot:
     """
     Get a complete snapshot of equity market data for a given ticker.
     
@@ -288,25 +313,20 @@ def get_equity_snapshot(ticker: str, end_date: date) -> Dict:
     
     Args:
         ticker: Stock ticker symbol (e.g., "AAPL", "MSFT")
-        end_date: End date for historical price data as a date object
+        end_date: End date for historical price data as a date object.
+                 If None, uses the previous weekday (most recent Monday-Friday).
         
     Returns:
-        Dictionary with the following structure:
-        {
-            "ticker": str,
-            "price": float,
-            "return_1d": float,  # Return multiplier (1.01 = up 1%)
-            "return_5d": float,  # Return multiplier (1.01 = up 1%)
-            "market_cap": float,
-            "sector": str,
-            "date": str,  # Date from price snapshot
-            "source": "financialdatasets.ai"
-        }
+        EquitySnapshot model combining price/return data with company facts.
         
     Raises:
         ValueError: If API key is missing or ticker is invalid
         requests.RequestException: If API request fails
     """
+    # If no date provided, use the previous weekday
+    if end_date is None:
+        end_date = _get_previous_weekday()
+    
     # Get price snapshot (with dates)
     price_data = get_price_snapshot(ticker, end_date)
     
@@ -314,19 +334,16 @@ def get_equity_snapshot(ticker: str, end_date: date) -> Dict:
     company_data = get_company_facts(ticker)
     
     # Combine the results
-    combined = {
-        "ticker": ticker,
-        "price": price_data.get("price", 0.0),
-        "return_1d": price_data.get("return_1d", 1.0),  # 1.0 means no change
-        "return_5d": price_data.get("return_5d", 1.0),  # 1.0 means no change
-        "market_cap": company_data.get("market_cap", 0.0),
-        "sector": company_data.get("sector", "Unknown"),
-        "date": price_data.get("date", ""),
-        "source": "financialdatasets.ai"
-    }
-    
-    # Add industry if available
-    if "industry" in company_data and company_data["industry"]:
-        combined["industry"] = company_data["industry"]
+    combined = EquitySnapshot(
+        ticker=price_data.ticker,
+        price=price_data.price,
+        return_1d=price_data.return_1d,
+        return_5d=price_data.return_5d,
+        market_cap=company_data.market_cap,
+        sector=company_data.sector,
+        industry=company_data.industry,
+        date=price_data.date,
+        source=price_data.source,
+    )
     
     return combined
