@@ -1,0 +1,50 @@
+{
+  "intents": [
+    {
+      "name": "financials_revenue_summary",
+      "description": "Summarize revenue over a recent multi-year period for a given ticker.",
+      "slots": ["ticker", "metric", "periods", "other"],
+      "seeds": ["Summarize the last 4 years of revenue for NVDA."]
+    },
+    {
+      "name": "volatility_comparison_convertible",
+      "description": "Compare realized equity vol over a lookback window to implied vol at issuance of a convertible.",
+      "slots": [
+        "ticker",
+        "lookback_window",
+        "instrument",
+        "vol_type_realized",
+        "vol_type_implied",
+        "fallback_allowed",
+        "other"
+      ],
+      "seeds": [
+        "Compare realized vol over the last 90 days to the implied vol at issuance of this convertible."
+      ]
+    },
+    {
+      "name": "price_performance_summary",
+      "description": "Summarize recent price performance over short horizons (e.g., 1M/3M/YTD) for a ticker.",
+      "slots": ["ticker", "horizons", "as_of", "other"],
+      "seeds": [
+        "Summarize 1M, 3M, and YTD returns for this ticker.",
+        "Give me recent performance for the stock over the last month, quarter, and year to date."
+      ]
+    },
+    {
+      "name": "dividend_overview",
+      "description": "Provide dividend yield, recent payments, and upcoming ex-dividend/payment dates for a ticker.",
+      "slots": ["ticker", "yield", "frequency", "next_ex_date", "next_pay_date", "ttm_dividends", "other"],
+      "seeds": [
+        "What is the dividend yield, next ex-date, and payout for this ticker?",
+        "Give me dividend details: yield, last payment, next ex-dividend date for this company."
+      ]
+    },
+    {
+      "name": "generic_unhandled",
+      "description": "Fallback when no intent fits; preserve details in slots.other.",
+      "slots": ["other"],
+      "seeds": ["Unmapped or ambiguous questions."]
+    }
+  ]
+}
