@@ -7,25 +7,29 @@ import os
 from typing import List, Tuple
 
 import requests
+from dotenv import load_dotenv
 
 from src.desk_agent.intents_loader import IntentDef, load_intent_definitions
 
 
+load_dotenv()
+
+
 def _get_llm_api_key() -> str:
-    api_key = os.getenv("LLM_API_KEY")
+    api_key = os.getenv("LLM_API_KEY") or os.getenv("OPENAI_API_KEY")
     if not api_key:
-        raise ValueError("LLM_API_KEY not set in environment.")
+        raise ValueError("LLM_API_KEY/OPENAI_API_KEY not set in environment.")
     return api_key
 
 
 def _get_llm_endpoint() -> str:
-    endpoint = os.getenv("LLM_API_URL")
+    endpoint = os.getenv("LLM_API_URL") or os.getenv("OPENAI_API_URL")
     if not endpoint:
-        raise ValueError("LLM_API_URL not set in environment.")
+        endpoint = "https://api.openai.com/v1/chat/completions"
     return endpoint
 
 
-def _call_llm_chat(messages: List[dict], model: str = "generic-llm") -> str:
+def _call_llm_chat(messages: List[dict], model: str) -> str:
     api_key = _get_llm_api_key()
     endpoint = _get_llm_endpoint()
     headers = {
@@ -46,7 +50,7 @@ def _call_llm_chat(messages: List[dict], model: str = "generic-llm") -> str:
 def classify_question(
     question: str,
     intents: List[IntentDef] | None = None,
-    model: str = "generic-llm",
+    model: str,
 ) -> Tuple[str, float, dict]:
     """
     Ask an LLM to pick the best intent for a question.
@@ -69,6 +73,8 @@ def classify_question(
         {"role": "system", "content": system_prompt},
         {"role": "user", "content": user_prompt},
     ]
+    if not model:
+        raise ValueError("Model name required for classification.")
     raw = _call_llm_chat(messages, model=model)
     parsed = json.loads(raw)
     return parsed.get("intent", "generic_unhandled"), float(parsed.get("confidence", 0)), parsed.get("slots", {})

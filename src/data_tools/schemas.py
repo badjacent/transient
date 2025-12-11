@@ -46,3 +46,15 @@ class QAPair(BaseModel):
     question: str
     answer: str
     context: Optional[str] = None
+
+
+class Equity(BaseModel):
+    """Static identifiers/metadata for an equity security."""
+
+    symbol: str
+    isin: str
+    cusip: str
+    cik: str = ""
+    currency: str
+    exchange: str
+    pricing_source: str

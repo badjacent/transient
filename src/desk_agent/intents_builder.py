@@ -12,8 +12,12 @@ from pathlib import Path
 from typing import List
 
 import requests
+from dotenv import load_dotenv
 
 from src.desk_agent.intents_loader import IntentDef
+
+load_dotenv()
+
 
 DEFAULT_SYSTEM_PROMPT = (
     "You are an intent schema builder for a financial desk agent. "
@@ -24,20 +28,21 @@ DEFAULT_SYSTEM_PROMPT = (
 
 
 def _get_llm_api_key() -> str:
-    api_key = os.getenv("LLM_API_KEY")
+    api_key = os.getenv("LLM_API_KEY") or os.getenv("OPENAI_API_KEY")
     if not api_key:
-        raise ValueError("LLM_API_KEY not set in environment.")
+        raise ValueError("LLM_API_KEY/OPENAI_API_KEY not set in environment.")
     return api_key
 
 
 def _get_llm_endpoint() -> str:
-    endpoint = os.getenv("LLM_API_URL")
+    endpoint = os.getenv("LLM_API_URL") or os.getenv("OPENAI_API_URL")
     if not endpoint:
-        raise ValueError("LLM_API_URL not set in environment.")
+        # Default to OpenAI chat completions endpoint
+        endpoint = "https://api.openai.com/v1/chat/completions"
     return endpoint
 
 
-def _call_llm_chat(messages: List[dict], model: str = "generic-llm") -> str:
+def _call_llm_chat(messages: List[dict], model: str) -> str:
     """Thin wrapper around a chat completion API."""
     api_key = _get_llm_api_key()
     endpoint = _get_llm_endpoint()
@@ -73,7 +78,7 @@ def _parse_intents_json(raw_text: str) -> List[IntentDef]:
     ]
 
 
-def build_intents_from_seeds(seeds: List[str], model: str = "gpt-4o-mini") -> List[IntentDef]:
+def build_intents_from_seeds(seeds: List[str], model: str) -> List[IntentDef]:
     """Ask an LLM to propose intents/slots from seed questions."""
     user_prompt = (
         "Seed questions:\n"
@@ -135,7 +140,10 @@ def _default_seeds() -> List[str]:
 
 def main() -> None:
     seeds = _default_seeds()
-    intents = build_intents_from_seeds(seeds)
+    model = os.getenv("LLM_MODEL") or os.getenv("OPENAI_MODEL")
+    if not model:
+        raise ValueError("Set LLM_MODEL or OPENAI_MODEL to select an LLM/model name.")
+    intents = build_intents_from_seeds(seeds, model=model)
     write_intents_file(intents, Path(__file__).resolve().parent / "intents_data.json")
     print(f"Wrote {len(intents)} intents to intents_data.json based on {len(seeds)} seeds.")
 

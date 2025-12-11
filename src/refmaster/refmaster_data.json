@@ -1,0 +1,454 @@
+{
+  "equities": [
+    {
+      "symbol": "AAPL",
+      "isin": "US1446252744",
+      "cusip": "144625274",
+      "cik": "0000320193",
+      "currency": "USD",
+      "exchange": "NASDAQ",
+      "pricing_source": "financialdatasets.ai"
+    },
+    {
+      "symbol": "MSFT",
+      "isin": "US8638027990",
+      "cusip": "863802799",
+      "cik": "0000789019",
+      "currency": "USD",
+      "exchange": "NASDAQ",
+      "pricing_source": "financialdatasets.ai"
+    },
+    {
+      "symbol": "GOOGL",
+      "isin": "US2566545263",
+      "cusip": "256654526",
+      "cik": "0001652044",
+      "currency": "USD",
+      "exchange": "NASDAQ",
+      "pricing_source": "financialdatasets.ai"
+    },
+    {
+      "symbol": "AMZN",
+      "isin": "US3118228945",
+      "cusip": "311822894",
+      "cik": "0001018724",
+      "currency": "USD",
+      "exchange": "NASDAQ",
+      "pricing_source": "financialdatasets.ai"
+    },
+    {
+      "symbol": "NVDA",
+      "isin": "US4262192184",
+      "cusip": "426219218",
+      "cik": "0001045810",
+      "currency": "USD",
+      "exchange": "NASDAQ",
+      "pricing_source": "financialdatasets.ai"
+    },
+    {
+      "symbol": "META",
+      "isin": "US2172953778",
+      "cusip": "217295377",
+      "cik": "0001326801",
+      "currency": "USD",
+      "exchange": "NASDAQ",
+      "pricing_source": "financialdatasets.ai"
+    },
+    {
+      "symbol": "TSLA",
+      "isin": "US2698597992",
+      "cusip": "269859799",
+      "cik": "0001318605",
+      "currency": "USD",
+      "exchange": "NASDAQ",
+      "pricing_source": "financialdatasets.ai"
+    },
+    {
+      "symbol": "BRK.B",
+      "isin": "US0907517777",
+      "cusip": "090751777",
+      "cik": "",
+      "currency": "USD",
+      "exchange": "NASDAQ",
+      "pricing_source": "financialdatasets.ai"
+    },
+    {
+      "symbol": "JPM",
+      "isin": "US6463240530",
+      "cusip": "646324053",
+      "cik": "0000019617",
+      "currency": "USD",
+      "exchange": "NYSE",
+      "pricing_source": "financialdatasets.ai"
+    },
+    {
+      "symbol": "V",
+      "isin": "US5678116667",
+      "cusip": "567811666",
+      "cik": "0001403161",
+      "currency": "USD",
+      "exchange": "NYSE",
+      "pricing_source": "financialdatasets.ai"
+    },
+    {
+      "symbol": "MA",
+      "isin": "US0055891065",
+      "cusip": "005589106",
+      "cik": "0001141391",
+      "currency": "USD",
+      "exchange": "NYSE",
+      "pricing_source": "financialdatasets.ai"
+    },
+    {
+      "symbol": "PG",
+      "isin": "US9102699686",
+      "cusip": "910269968",
+      "cik": "0000080424",
+      "currency": "USD",
+      "exchange": "NYSE",
+      "pricing_source": "financialdatasets.ai"
+    },
+    {
+      "symbol": "XOM",
+      "isin": "US8420482098",
+      "cusip": "842048209",
+      "cik": "0000034088",
+      "currency": "USD",
+      "exchange": "NYSE",
+      "pricing_source": "financialdatasets.ai"
+    },
+    {
+      "symbol": "CVX",
+      "isin": "US1404444499",
+      "cusip": "140444449",
+      "cik": "0000093410",
+      "currency": "USD",
+      "exchange": "NYSE",
+      "pricing_source": "financialdatasets.ai"
+    },
+    {
+      "symbol": "JNJ",
+      "isin": "US5705986983",
+      "cusip": "570598698",
+      "cik": "0000200406",
+      "currency": "USD",
+      "exchange": "NYSE",
+      "pricing_source": "financialdatasets.ai"
+    },
+    {
+      "symbol": "UNH",
+      "isin": "US3687707642",
+      "cusip": "368770764",
+      "cik": "0000731766",
+      "currency": "USD",
+      "exchange": "NYSE",
+      "pricing_source": "financialdatasets.ai"
+    },
+    {
+      "symbol": "HD",
+      "isin": "US3234179238",
+      "cusip": "323417923",
+      "cik": "0000354950",
+      "currency": "USD",
+      "exchange": "NYSE",
+      "pricing_source": "financialdatasets.ai"
+    },
+    {
+      "symbol": "BAC",
+      "isin": "US2074023308",
+      "cusip": "207402330",
+      "cik": "0000070858",
+      "currency": "USD",
+      "exchange": "NYSE",
+      "pricing_source": "financialdatasets.ai"
+    },
+    {
+      "symbol": "PFE",
+      "isin": "US7321295567",
+      "cusip": "732129556",
+      "cik": "0000078003",
+      "currency": "USD",
+      "exchange": "NYSE",
+      "pricing_source": "financialdatasets.ai"
+    },
+    {
+      "symbol": "KO",
+      "isin": "US8491745118",
+      "cusip": "849174511",
+      "cik": "0000021344",
+      "currency": "USD",
+      "exchange": "NYSE",
+      "pricing_source": "financialdatasets.ai"
+    },
+    {
+      "symbol": "PEP",
+      "isin": "US2000161115",
+      "cusip": "200016111",
+      "cik": "0000077476",
+      "currency": "USD",
+      "exchange": "NYSE",
+      "pricing_source": "financialdatasets.ai"
+    },
+    {
+      "symbol": "CSCO",
+      "isin": "US1477590475",
+      "cusip": "147759047",
+      "cik": "0000858877",
+      "currency": "USD",
+      "exchange": "NASDAQ",
+      "pricing_source": "financialdatasets.ai"
+    },
+    {
+      "symbol": "ADBE",
+      "isin": "US5798508769",
+      "cusip": "579850876",
+      "cik": "0000796343",
+      "currency": "USD",
+      "exchange": "NASDAQ",
+      "pricing_source": "financialdatasets.ai"
+    },
+    {
+      "symbol": "CRM",
+      "isin": "US1307054452",
+      "cusip": "130705445",
+      "cik": "0001108524",
+      "currency": "USD",
+      "exchange": "NYSE",
+      "pricing_source": "financialdatasets.ai"
+    },
+    {
+      "symbol": "NFLX",
+      "isin": "US1817863699",
+      "cusip": "181786369",
+      "cik": "0001065280",
+      "currency": "USD",
+      "exchange": "NASDAQ",
+      "pricing_source": "financialdatasets.ai"
+    },
+    {
+      "symbol": "INTC",
+      "isin": "US1292046240",
+      "cusip": "129204624",
+      "cik": "0000050863",
+      "currency": "USD",
+      "exchange": "NASDAQ",
+      "pricing_source": "financialdatasets.ai"
+    },
+    {
+      "symbol": "ORCL",
+      "isin": "US7190915550",
+      "cusip": "719091555",
+      "cik": "0001341439",
+      "currency": "USD",
+      "exchange": "NASDAQ",
+      "pricing_source": "financialdatasets.ai"
+    },
+    {
+      "symbol": "T",
+      "isin": "US6327095070",
+      "cusip": "632709507",
+      "cik": "0000732717",
+      "currency": "USD",
+      "exchange": "NYSE",
+      "pricing_source": "financialdatasets.ai"
+    },
+    {
+      "symbol": "VZ",
+      "isin": "US5836371378",
+      "cusip": "583637137",
+      "cik": "0000732712",
+      "currency": "USD",
+      "exchange": "NYSE",
+      "pricing_source": "financialdatasets.ai"
+    },
+    {
+      "symbol": "WMT",
+      "isin": "US3882270271",
+      "cusip": "388227027",
+      "cik": "0000104169",
+      "currency": "USD",
+      "exchange": "NYSE",
+      "pricing_source": "financialdatasets.ai"
+    },
+    {
+      "symbol": "COST",
+      "isin": "US4762769101",
+      "cusip": "476276910",
+      "cik": "0000909832",
+      "currency": "USD",
+      "exchange": "NASDAQ",
+      "pricing_source": "financialdatasets.ai"
+    },
+    {
+      "symbol": "DIS",
+      "isin": "US6813017844",
+      "cusip": "681301784",
+      "cik": "0001744489",
+      "currency": "USD",
+      "exchange": "NYSE",
+      "pricing_source": "financialdatasets.ai"
+    },
+    {
+      "symbol": "MCD",
+      "isin": "US7500003253",
+      "cusip": "750000325",
+      "cik": "0000063908",
+      "currency": "USD",
+      "exchange": "NYSE",
+      "pricing_source": "financialdatasets.ai"
+    },
+    {
+      "symbol": "NKE",
+      "isin": "US2446576801",
+      "cusip": "244657680",
+      "cik": "0000320187",
+      "currency": "USD",
+      "exchange": "NYSE",
+      "pricing_source": "financialdatasets.ai"
+    },
+    {
+      "symbol": "SBUX",
+      "isin": "US6425529137",
+      "cusip": "642552913",
+      "cik": "0000829224",
+      "currency": "USD",
+      "exchange": "NASDAQ",
+      "pricing_source": "financialdatasets.ai"
+    },
+    {
+      "symbol": "AMD",
+      "isin": "US0347162747",
+      "cusip": "034716274",
+      "cik": "0000002488",
+      "currency": "USD",
+      "exchange": "NYSE",
+      "pricing_source": "financialdatasets.ai"
+    },
+    {
+      "symbol": "AVGO",
+      "isin": "US7824012519",
+      "cusip": "782401251",
+      "cik": "0001730168",
+      "currency": "USD",
+      "exchange": "NASDAQ",
+      "pricing_source": "financialdatasets.ai"
+    },
+    {
+      "symbol": "TXN",
+      "isin": "US1474948353",
+      "cusip": "147494835",
+      "cik": "0000097476",
+      "currency": "USD",
+      "exchange": "NYSE",
+      "pricing_source": "financialdatasets.ai"
+    },
+    {
+      "symbol": "QCOM",
+      "isin": "US2656054770",
+      "cusip": "265605477",
+      "cik": "0000804328",
+      "currency": "USD",
+      "exchange": "NASDAQ",
+      "pricing_source": "financialdatasets.ai"
+    },
+    {
+      "symbol": "AMGN",
+      "isin": "US8336345124",
+      "cusip": "833634512",
+      "cik": "0000318154",
+      "currency": "USD",
+      "exchange": "NASDAQ",
+      "pricing_source": "financialdatasets.ai"
+    },
+    {
+      "symbol": "ABBV",
+      "isin": "US9940307658",
+      "cusip": "994030765",
+      "cik": "0001551152",
+      "currency": "USD",
+      "exchange": "NASDAQ",
+      "pricing_source": "financialdatasets.ai"
+    },
+    {
+      "symbol": "LLY",
+      "isin": "US4086272220",
+      "cusip": "408627222",
+      "cik": "0000059478",
+      "currency": "USD",
+      "exchange": "NYSE",
+      "pricing_source": "financialdatasets.ai"
+    },
+    {
+      "symbol": "MRK",
+      "isin": "US6733024516",
+      "cusip": "673302451",
+      "cik": "0000310158",
+      "currency": "USD",
+      "exchange": "NYSE",
+      "pricing_source": "financialdatasets.ai"
+    },
+    {
+      "symbol": "DHR",
+      "isin": "US6857144124",
+      "cusip": "685714412",
+      "cik": "0000313616",
+      "currency": "USD",
+      "exchange": "NYSE",
+      "pricing_source": "financialdatasets.ai"
+    },
+    {
+      "symbol": "HON",
+      "isin": "US4268185067",
+      "cusip": "426818506",
+      "cik": "0000773840",
+      "currency": "USD",
+      "exchange": "NYSE",
+      "pricing_source": "financialdatasets.ai"
+    },
+    {
+      "symbol": "CAT",
+      "isin": "US1589569466",
+      "cusip": "158956946",
+      "cik": "0000018230",
+      "currency": "USD",
+      "exchange": "NYSE",
+      "pricing_source": "financialdatasets.ai"
+    },
+    {
+      "symbol": "BA",
+      "isin": "US2967176635",
+      "cusip": "296717663",
+      "cik": "0000012927",
+      "currency": "USD",
+      "exchange": "NYSE",
+      "pricing_source": "financialdatasets.ai"
+    },
+    {
+      "symbol": "UPS",
+      "isin": "US3564792204",
+      "cusip": "356479220",
+      "cik": "0001090727",
+      "currency": "USD",
+      "exchange": "NYSE",
+      "pricing_source": "financialdatasets.ai"
+    },
+    {
+      "symbol": "GE",
+      "isin": "US8760198940",
+      "cusip": "876019894",
+      "cik": "0000040545",
+      "currency": "USD",
+      "exchange": "NYSE",
+      "pricing_source": "financialdatasets.ai"
+    },
+    {
+      "symbol": "DE",
+      "isin": "US6814466883",
+      "cusip": "681446688",
+      "cik": "0000315189",
+      "currency": "USD",
+      "exchange": "NYSE",
+      "pricing_source": "financialdatasets.ai"
+    }
+  ]
+}

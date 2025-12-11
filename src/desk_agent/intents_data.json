@@ -4,7 +4,11 @@
       "name": "financials_revenue_summary",
       "description": "Summarize revenue over a recent multi-year period for a given ticker.",
       "slots": ["ticker", "metric", "periods", "other"],
-      "seeds": ["Summarize the last 4 years of revenue for NVDA."]
+      "seeds": [
+        "Summarize the last 4 years of revenue for this ticker.",
+        "Show me the revenue trend over the past four fiscal years for the company mentioned.",
+        "How has revenue changed year over year for the last four years for this equity?"
+      ]
     },
     {
       "name": "volatility_comparison_convertible",
@@ -19,7 +23,8 @@
         "other"
       ],
       "seeds": [
-        "Compare realized vol over the last 90 days to the implied vol at issuance of this convertible."
+        "Compare realized vol over the last 90 days to the implied vol at issuance of this convertible.",
+        "Check realized equity vol for the past 90 days versus the convert's issuance implied vol; use a placeholder if implied is missing."
       ]
     },
     {
