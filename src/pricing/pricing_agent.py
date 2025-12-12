@@ -1,0 +1,117 @@
+"""Pricing agent that validates internal marks against market data."""
+
+from __future__ import annotations
+
+import json
+from pathlib import Path
+from typing import Any, Dict, List
+
+try:
+    import pandas as pd
+except Exception:  # pragma: no cover
+    pd = None
+
+from src.pricing.normalizer import MarketNormalizer
+from src.pricing.schema import EnrichedMark, Mark
+
+
+class PricingAgent:
+    """Run mark validation and reporting."""
+
+    def __init__(self, normalizer: MarketNormalizer | None = None):
+        self.normalizer = normalizer or MarketNormalizer()
+
+    def _load_marks(self, marks_input) -> List[Dict[str, Any]]:
+        if isinstance(marks_input, list):
+            return marks_input
+        if isinstance(marks_input, str):
+            path = Path(marks_input)
+            if not path.exists():
+                raise FileNotFoundError(f"Marks file not found: {marks_input}")
+            if path.suffix.lower() == ".csv":
+                if pd is None:
+                    raise ImportError("pandas required to read CSV marks")
+                return pd.read_csv(path).to_dict(orient="records")
+            if path.suffix.lower() in (".json", ".jsonl"):
+                data = json.loads(path.read_text())
+                return data if isinstance(data, list) else [data]
+            raise ValueError("Unsupported marks file format")
+        if pd is not None and hasattr(marks_input, "to_dict"):
+            return marks_input.to_dict(orient="records")
+        raise ValueError("marks_input must be list/CSV/JSON/DataFrame path/object")
+
+    def run(self, marks_input) -> Dict[str, Any]:
+        marks_records = self._load_marks(marks_input)
+        enriched: List[EnrichedMark] = self.normalizer.enrich_marks(marks_records)
+        enriched_dicts = [m.model_dump() for m in enriched]
+        summary = self._aggregate(enriched)
+        explanations = [self._explain(m) for m in enriched]
+        for idx, exp in enumerate(explanations):
+            enriched_dicts[idx]["explanation"] = exp
+        return {
+            "enriched_marks": enriched_dicts,
+            "summary": summary,
+        }
+
+    def _aggregate(self, marks: List[EnrichedMark]) -> Dict[str, Any]:
+        counts: Dict[str, int] = {}
+        deviations: List[float] = []
+        for m in marks:
+            cls = m.classification
+            counts[cls] = counts.get(cls, 0) + 1
+            if m.deviation_percentage is not None:
+                deviations.append(abs(m.deviation_percentage))
+        total = len(marks)
+        avg_dev = sum(deviations) / len(deviations) if deviations else None
+        max_dev = max(deviations) if deviations else None
+        top_tickers = sorted({m.ticker for m in marks if m.classification != "OK"})
+        return {
+            "counts": counts,
+            "total_marks": total,
+            "average_deviation": avg_dev,
+            "max_deviation": max_dev,
+            "top_tickers": top_tickers,
+        }
+
+    def _explain(self, mark: EnrichedMark) -> str:
+        cls = mark.classification
+        if cls == "OUT_OF_TOLERANCE":
+            return (
+                f"{mark.ticker} mark {mark.internal_mark} vs market {mark.market_price} "
+                f"({mark.deviation_percentage:.2%} off); check for stale data, corp actions, or input errors."
+            )
+        if cls == "REVIEW_NEEDED":
+            return (
+                f"{mark.ticker} mark {mark.internal_mark} vs market {mark.market_price} "
+                f"({mark.deviation_percentage:.2%} off); moderate variance, verify source."
+            )
+        if cls == "NO_MARKET_DATA":
+            return f"{mark.ticker} missing market data; investigate data source or ticker mapping. {mark.error or ''}".strip()
+        if cls == "STALE_MARK":
+            return f"{mark.ticker} mark dated {mark.as_of_date} exceeds stale threshold; refresh required."
+        return f"{mark.ticker} within tolerance."
+
+
+def generate_report(enriched_payload: Dict[str, Any], output_path: str | None = None) -> str:
+    """Build a simple Markdown report; optionally write to file. Returns the Markdown string."""
+    lines = []
+    summary = enriched_payload.get("summary", {})
+    lines.append("# Pricing Report")
+    lines.append("")
+    lines.append("## Summary")
+    for k, v in summary.items():
+        lines.append(f"- {k}: {v}")
+    lines.append("")
+    lines.append("## Details")
+    for mark in enriched_payload.get("enriched_marks", []):
+        lines.append(
+            f"- {mark['ticker']} ({mark['as_of_date']}): {mark['classification']} | "
+            f"internal {mark['internal_mark']} vs market {mark.get('market_price')} | "
+            f"dev {mark.get('deviation_percentage')}"
+        )
+        if mark.get("explanation"):
+            lines.append(f"  - {mark['explanation']}")
+    report = "\n".join(lines)
+    if output_path:
+        Path(output_path).write_text(report, encoding="utf-8")
+    return report

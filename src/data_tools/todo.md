@@ -1,8 +1,18 @@
-Documentation tightening (no code changes made)
-- fd_api.py: Docstrings (e.g., get_price_snapshot/get_equity_snapshot) reiterate assumptions and obvious steps; could be condensed to essential behavior/risks and avoid restating parameter types. Inline comments narrate straightforward operations (e.g., “Get historical prices”, “Calculate returns”) and can be pruned where the code is self-evident. Return-structure descriptions in docstrings are redundant now that Pydantic models document fields.
-- qa_builder.py: Function docstrings are verbose and repeat usage notes (e.g., generate_from_pdf handling HTML) across helpers; consider a short module-level note instead. Inline comments in the dataset-flattening loops restate code (e.g., “Dataset is a tuple...”) and could be removed or replaced with a single brief helper docstring. Error-path notes in extract_mda_section/extract_full_10k could be shortened to a sentence about returning None on parser errors.
-- schemas.py: Docstrings are already brief; no changes recommended.
+# Data Tools Cleanup TODO (implementation-ready)
+Audience: implementation agent. Focus on tightening docs and surfacing failures; avoid masking errors.
 
-Silent failures / overly complex logic (no code changes made)
-- fd_api.py: get_company_facts returns defaults (“Unknown”/0) when non-200 responses occur, so auth/404/server errors look like valid data. get_price_snapshot labels results with the requested date even if the latest trading date differs, and defaults missing returns to 1.0 when data is incomplete—both can mask gaps.
-- qa_builder.py: extract_mda_section/extract_full_10k swallow all exceptions, print, and return None, hiding real parser/network/auth issues. Dataset-flattening loops are duplicated across generators and silently drop unexpected item shapes, returning empty lists without signaling upstream library changes or errors.
+## Docstring and Comment Cleanup
+- [x] `fd_api.py`: condense docstrings for `get_price_snapshot`/`get_equity_snapshot` to essential behavior and risks; remove inline comments that narrate obvious steps; rely on models for return structure.
+- [x] `qa_builder.py`: replace repeated helper docstrings with a concise module-level note; trim inline comments in dataset-flattening loops; keep only a brief note where behavior is non-obvious.
+- [x] `schemas.py`: no changes needed; verify brevity is retained.
+
+## Surface Failures Instead of Masking
+- [x] `fd_api.py::get_company_facts`: on non-200 responses, stop returning “Unknown”/0 defaults; raise or return structured error objects so callers can act on auth/404/server failures.
+- [x] `fd_api.py::get_price_snapshot`: ensure returned dates reflect actual market data date (not just requested date); avoid defaulting missing returns to 1.0—signal incomplete data via None/exception/flag.
+- [x] `qa_builder.py::extract_mda_section` / `extract_full_10k`: stop swallowing all exceptions and printing; return structured error or re-raise with context so parser/network/auth issues are visible upstream.
+
+## Deduplicate and Validate Dataset Flattening
+- [x] `qa_builder.py`: consolidate dataset-flattening loops into a single helper that validates item shapes; if unexpected shapes are encountered, emit an explicit error/log rather than silently dropping to empty lists.
+
+## Testing/Validation
+- [x] Add/update tests to cover: non-200 fact fetch handling, price snapshot date/returns when data is missing, parser errors surfacing from QA builder, and error on unexpected dataset shapes.

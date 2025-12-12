@@ -1,0 +1,3 @@
+ok_threshold: 0.02
+review_threshold: 0.05
+stale_days: 5

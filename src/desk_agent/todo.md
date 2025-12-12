@@ -1,580 +1,209 @@
-# Week 6 - Full Front-Office Workflow: Desk Agent MVP Implementation TODO
-
-## Overview
-Combine all previous components (Reference Master, Trade QA, Pricing Agent, Ticker Agent, Data Tools) into a unified Desk Agent workflow that can execute scenarios end-to-end and produce integrated reports suitable for front-office use.
+# Desk Agent TODO (implementation-ready)
+Audience: implementation agent. Treat all referenced sub-agents as existing stubs in their home modules (no internal modifications here). Paths are repo-root-relative.
 
 ## Module Structure Setup
-
-- [ ] Create `src/desk_agent/` directory
-- [ ] Create `src/desk_agent/__init__.py`
-- [ ] Create `src/desk_agent/orchestrator.py` for main workflow orchestration
-- [ ] Create `src/desk_agent/config.py` for configuration management
-- [ ] Create `tests/desk_agent/` directory
-- [ ] Create `tests/desk_agent/__init__.py`
-- [ ] Create `tests/desk_agent/test_orchestrator.py` for orchestrator tests
-- [ ] Create `scenarios/` directory at project root (if not exists)
-- [ ] Create scenario files in `scenarios/` directory
-- [ ] Create `logs/` directory at project root (if not exists)
-- [ ] Create `examples/combined_report_example.json` template
+- [ ] Ensure `src/desk_agent/` exists with `__init__.py`, `orchestrator.py`, and `config.py`; files may start as stubs but must be importable.
+- [ ] Ensure `tests/desk_agent/` exists with `__init__.py` and `test_orchestrator.py` placeholder.
+- [ ] Ensure project-root `scenarios/` and `logs/` directories exist; keep write path configurable via `config.py`.
+- [ ] Create/update `examples/combined_report_example.json` as a template output produced by the orchestrator.
 
 ## Task 1: Build the Orchestrator
 
 ### 1.1 Orchestrator Class Structure
-- [ ] Create `DeskAgentOrchestrator` class in `src/desk_agent/orchestrator.py`
-- [ ] Initialize with:
-  - Reference Master Agent (`refmaster.NormalizerAgent`)
-  - Trade QA Agent (`oms.oms_agent.OMSAgent`)
-  - Pricing Agent (`pricing.pricing_agent.PricingAgent`)
-  - Ticker Agent (`ticker_agent.ticker_agent.run`)
-  - Data snapshot tools (`data_tools.fd_api`)
-- [ ] Add configuration loading from `config.py`
-- [ ] Add logging setup
+- [ ] Implement `DeskAgentOrchestrator` in `src/desk_agent/orchestrator.py`, initialized with injected stubs: `refmaster.NormalizerAgent`, `oms.oms_agent.OMSAgent`, `pricing.pricing_agent.PricingAgent`, `ticker_agent.ticker_agent.run`, and `data_tools.fd_api` utilities.
+- [ ] Wire configuration loading through `config.py` (env > file > defaults) and set up logging (level, handlers, log path from config).
+- [ ] Expose constructor parameters for dependency overrides (for tests/mocks).
 
 ### 1.2 Scenario Loading
-- [ ] Implement `load_scenario(scenario_name)` method:
-  - Load scenario from `scenarios/` directory
-  - Support JSON/YAML format
-  - Validate scenario schema
-  - Return scenario data structure
-- [ ] Handle scenario not found errors
-- [ ] Support custom scenario data (passed directly)
+- [ ] Implement `load_scenario(name_or_path: str) -> dict` that reads from `scenarios/` (JSON or YAML), validates schema, and surfaces `FileNotFoundError` with a helpful message.
+- [ ] Accept already-loaded scenario dicts without reloading.
+- [ ] Provide schema validation errors that list missing/invalid fields by path.
 
 ### 1.3 Workflow Execution
-- [ ] Implement `run_scenario(scenario_name_or_data)` method:
-  - Load scenario (if name provided) or use provided data
-  - Execute workflow steps in order
-  - Collect results from each sub-agent
-  - Aggregate results
-  - Generate integrated report
-  - Return structured report
-- [ ] Define execution order:
-  1. Load scenario data
-  2. Validate scenario structure
-  3. Run Reference Master normalization (if needed)
-  4. Run Trade QA validation (if trades present)
-  5. Run Pricing validation (if marks present)
-  6. Run Ticker Agent queries (if questions present)
-  7. Fetch market context data
-  8. Aggregate all results
-  9. Generate narrative summary
+- [ ] Implement `run_scenario(scenario: str | dict) -> dict` that executes the ordered workflow and returns the integrated report.
+- [ ] Execution order (enforce explicitly): load/accept scenario → validate schema → normalize tickers → trade QA → pricing validation → ticker questions → market context fetch → aggregate → narrative + stats.
+- [ ] Capture per-step timings, inputs, outputs, and exceptions in a structured trace attached to the report.
 
 ### 1.4 Reference Master Integration
-- [ ] Integrate `refmaster.NormalizerAgent`:
-  - Normalize ticker identifiers in scenario
-  - Validate ticker mappings
-  - Handle ambiguous matches
-  - Use confidence scores appropriately
-- [ ] Handle normalization errors
-- [ ] Log normalization results
+- [ ] Call `refmaster.NormalizerAgent` stub to normalize all identifiers in scenario trades/marks/questions; propagate confidence scores and ambiguity flags.
+- [ ] Surface normalization failures without stopping the workflow; include them in `data_quality`.
+- [ ] Log normalization inputs, resolved identifiers, and confidence.
 
-### 1.5 Trade QA Agent Integration
-- [ ] Integrate `oms.oms_agent.OMSAgent`:
-  - Validate trades from scenario
-  - Run QA checks on each trade
-  - Collect trade issues
-  - Aggregate trade validation results
-- [ ] Handle cases with no trades
-- [ ] Handle trade validation errors
-- [ ] Log trade validation results
+### 1.5 Trade QA Integration
+- [ ] Call `oms.oms_agent.OMSAgent` stub for each trade; collect per-trade status/issues and an aggregate summary.
+- [ ] If no trades are present, skip with a logged no-op entry and mark `trade_issues` as empty.
+- [ ] On validation errors, continue but record error objects in the report.
 
-### 1.6 Pricing Agent Integration
-- [ ] Integrate `pricing.pricing_agent.PricingAgent`:
-  - Validate pricing marks from scenario
-  - Run pricing checks
-  - Collect pricing flags
-  - Aggregate pricing validation results
-- [ ] Handle cases with no marks
-- [ ] Handle pricing validation errors
-- [ ] Log pricing validation results
+### 1.6 Pricing Integration
+- [ ] Call `pricing.pricing_agent.PricingAgent` stub on marks; gather flags/classifications/deviations.
+- [ ] Handle empty marks with a logged skip; capture failures without aborting the run.
 
 ### 1.7 Ticker Agent Integration
-- [ ] Integrate `ticker_agent.ticker_agent.run`:
-  - Process ticker questions from scenario
-  - Run ticker agent for each question
-  - Collect ticker agent responses
-  - Aggregate ticker agent results
-- [ ] Handle cases with no questions
-- [ ] Handle ticker agent errors
-- [ ] Log ticker agent results
+- [ ] For each question, call `ticker_agent.ticker_agent.run` stub; collect intent, summary, and metrics per question.
+- [ ] Skip cleanly when no questions exist; errors are captured and surfaced in the report.
 
-### 1.8 Market Context Data
-- [ ] Fetch market context using `data_tools.fd_api`:
-  - Get equity snapshots for key tickers
-  - Get market-wide statistics (if available)
-  - Get sector/industry data
-  - Get recent market movements
-- [ ] Aggregate market context
-- [ ] Include in final report
+### 1.8 Market Context
+- [ ] Use `data_tools.fd_api.get_equity_snapshot` (or equivalent) to pull snapshots for key tickers from the scenario; include timestamps and sources.
+- [ ] Aggregate market-wide/sector stats only if provided by the stub; otherwise, log unavailability gracefully.
 
 ### 1.9 Error Handling
-- [ ] Handle sub-agent failures gracefully:
-  - Continue execution if one agent fails
-  - Log errors appropriately
-  - Include error information in report
-- [ ] Handle API failures:
-  - Retry logic (if appropriate)
-  - Fallback behavior
-  - Error reporting
-- [ ] Handle invalid scenario data
-- [ ] Handle missing dependencies
+- [ ] Implement per-step try/catch that records failures, keeps prior results, and proceeds unless configuration says otherwise.
+- [ ] Add retry policy hooks (config-driven) for external calls; load via `.env` (using `load_dotenv()`): `DESK_AGENT_MAX_RETRIES`, `DESK_AGENT_BACKOFF_MS`, `DESK_AGENT_ABORT_AFTER_RETRY` (bool-ish). Defaults if unset: 2 retries, 500ms backoff, abort on 3rd failure with partial results captured.
+- [ ] Detect missing dependencies early with a clear import/setup error.
 
 ## Task 2: Define 5 Scenarios
 
 ### 2.1 Scenario Schema
-- [ ] Define scenario data structure:
-  ```json
-  {
-    "name": "scenario_name",
-    "description": "...",
-    "trades": [...],
-    "marks": [...],
-    "questions": [...],
-    "metadata": {...}
-  }
-  ```
-- [ ] Define trade schema (matching `oms` Trade schema)
-- [ ] Define mark schema (matching `pricing` mark schema)
-- [ ] Define question schema (for ticker agent)
+- [ ] Define schema in code (used by validator): `{"name": str, "description": str, "trades": list, "marks": list, "questions": list, "metadata": dict}`.
+- [ ] Trade schema (align to OMS week spec): `{"trade_id": str, "ticker": str, "quantity": number, "price": number, "currency": str, "counterparty": str, "trade_dt": str (ISO), "settle_dt": str (ISO), "side": "BUY"|"SELL" optional notes}`.
+- [ ] Mark schema (align to pricing week spec): `{"ticker": str, "internal_mark": number, "as_of": str (ISO), "source": str optional, "notes": str optional}`.
+- [ ] Question schema: `{"question": str, "ticker": str optional, "intent_hint": str optional, "context": dict optional}` for ticker agent input.
 
 ### 2.2 Clean Day Scenario
-- [ ] Create `scenarios/clean_day.json`:
-  - All trades are valid
-  - All marks are within tolerance
-  - No errors or warnings
-  - Standard market conditions
-- [ ] Use realistic data
-- [ ] Include multiple tickers
-- [ ] Include multiple trades
-- [ ] Include multiple marks
+- [ ] Create `scenarios/clean_day.json` with multiple tickers/trades/marks, all valid, standard market conditions, no warnings expected.
 
 ### 2.3 Bad Mark Scenario
-- [ ] Create `scenarios/bad_mark.json`:
-  - One or more marks significantly deviate from market
-  - Marks flagged as OUT_OF_TOLERANCE
-  - Pricing agent should catch issues
-- [ ] Include various deviation types:
-  - Price too high
-  - Price too low
-  - Stale marks
-- [ ] Include realistic mark data
+- [ ] Create `scenarios/bad_mark.json` where marks have high/low/stale deviations; expect pricing agent to flag OUT_OF_TOLERANCE/REVIEW_NEEDED.
 
 ### 2.4 Wrong Ticker Mapping Scenario
-- [ ] Create `scenarios/wrong_ticker_mapping.json`:
-  - Ambiguous or incorrect ticker identifiers
-  - Reference Master should flag issues
-  - Low confidence matches
-  - Invalid ticker formats
-- [ ] Include various ticker formats:
-  - "AAPL US" (should work)
-  - "AAPL.OQ" (should work)
-  - "XYZ123" (invalid)
-  - Ambiguous matches
-- [ ] Test normalization edge cases
+- [ ] Create `scenarios/wrong_ticker_mapping.json` with ambiguous/incorrect identifiers (e.g., "AAPL US", "AAPL.OQ", "XYZ123", deliberate ambiguity) to exercise normalization edges.
 
 ### 2.5 Mis-booked Trade Scenario
-- [ ] Create `scenarios/mis_booked_trade.json`:
-  - Trades with validation errors:
-    - Wrong ticker/identifier
-    - Currency mismatch
-    - Price out of tolerance
-    - Wrong counterparty
-    - Missing fields
-    - Settlement date issues
-- [ ] Include multiple error types
-- [ ] Include realistic trade data
+- [ ] Create `scenarios/mis_booked_trade.json` covering wrong ticker, currency mismatch, price out of tolerance, wrong counterparty, missing fields, and settlement issues.
 
 ### 2.6 High-Vol Day Scenario
-- [ ] Create `scenarios/high_vol_day.json`:
-  - Market volatility conditions
-  - Large price movements
-  - Multiple pricing flags
-  - Trades with unusual prices
-  - Market context showing volatility
-- [ ] Include volatile market data
-- [ ] Test tolerance handling under volatility
-- [ ] Include market context data
+- [ ] Create `scenarios/high_vol_day.json` showing volatile market moves, multiple pricing flags, unusual trade prices, and context data reflecting volatility.
 
 ### 2.7 Scenario Validation
-- [ ] Validate all scenarios load correctly
-- [ ] Validate scenario schemas
-- [ ] Test scenario execution
-- [ ] Verify expected outcomes
+- [ ] Add automated schema validation and a smoke execution for each scenario; fail fast with descriptive errors if any scenario is invalid.
 
 ## Task 3: Produce an Integrated Report
 
 ### 3.1 Report Schema
-- [ ] Define integrated report structure:
+- [ ] Implement report structure exactly:
   ```json
   {
-    "scenario": {
-      "name": "...",
-      "description": "...",
-      "execution_date": "..."
-    },
-    "data_quality": {
-      "ticker_normalizations": [...],
-      "normalization_issues": [...],
-      "confidence_scores": {...}
-    },
-    "trade_issues": [
-      {
-        "trade_id": "...",
-        "status": "OK" | "WARNING" | "ERROR",
-        "issues": [...],
-        "ticker": "...",
-        "counterparty": "..."
-      }
-    ],
-    "pricing_flags": [
-      {
-        "ticker": "...",
-        "internal_mark": ...,
-        "market_price": ...,
-        "deviation": ...,
-        "classification": "...",
-        "explanation": "..."
-      }
-    ],
-    "market_context": {
-      "key_tickers": [...],
-      "market_movements": {...},
-      "sector_performance": {...},
-      "as_of_date": "..."
-    },
-    "ticker_agent_results": [
-      {
-        "question": "...",
-        "intent": "...",
-        "summary": "...",
-        "metrics": {...}
-      }
-    ],
+    "scenario": {"name": "...", "description": "...", "execution_date": "..."},
+    "data_quality": {"ticker_normalizations": [...], "normalization_issues": [...], "confidence_scores": {...}},
+    "trade_issues": [{"trade_id": "...", "status": "OK|WARNING|ERROR", "issues": [...], "ticker": "...", "counterparty": "..."}],
+    "pricing_flags": [{"ticker": "...", "internal_mark": ..., "market_price": ..., "deviation": ..., "classification": "...", "explanation": "..."}],
+    "market_context": {"key_tickers": [...], "market_movements": {...}, "sector_performance": {...}, "as_of_date": "..."},
+    "ticker_agent_results": [{"question": "...", "intent": "...", "summary": "...", "metrics": {...}}],
     "narrative": "...",
-    "summary": {
-      "total_trades": ...,
-      "trades_with_issues": ...,
-      "total_marks": ...,
-      "marks_flagged": ...,
-      "overall_status": "OK" | "WARNING" | "ERROR"
-    },
-    "execution_metadata": {
-      "execution_time_ms": ...,
-      "timestamp": "...",
-      "agents_executed": [...]
-    }
+    "summary": {"total_trades": ..., "trades_with_issues": ..., "total_marks": ..., "marks_flagged": ..., "overall_status": "OK|WARNING|ERROR"},
+    "execution_metadata": {"execution_time_ms": ..., "timestamp": "...", "agents_executed": [...]}
   }
   ```
 
-### 3.2 Data Quality Section
-- [ ] Aggregate ticker normalization results:
-  - Successful normalizations
-  - Ambiguous matches
-  - Failed normalizations
-  - Confidence scores
-- [ ] Include normalization details
-- [ ] Flag data quality issues
+### 3.2 Data Quality
+- [ ] Aggregate normalization successes, ambiguities, failures, and confidence scores; flag any missing identifiers.
 
-### 3.3 Trade Issues Section
-- [ ] Aggregate trade validation results:
-  - All trades processed
-  - Trades with errors
-  - Trades with warnings
-  - Trades that are OK
-- [ ] Include detailed issue information
-- [ ] Group by issue type
-- [ ] Include trade identifiers
+### 3.3 Trade Issues
+- [ ] Aggregate per-trade statuses; group issues by type and severity; retain original trade identifiers.
 
-### 3.4 Pricing Flags Section
-- [ ] Aggregate pricing validation results:
-  - All marks processed
-  - Marks flagged (OUT_OF_TOLERANCE, REVIEW_NEEDED)
-  - Marks that are OK
-  - Marks with no market data
-- [ ] Include deviation details
-- [ ] Include explanations
-- [ ] Sort by severity
+### 3.4 Pricing Flags
+- [ ] Aggregate marks with classifications (OK, OUT_OF_TOLERANCE, REVIEW_NEEDED, NO_MARKET_DATA); include deviation calculations and explanations sorted by severity.
 
-### 3.5 Market Context Section
-- [ ] Aggregate market data:
-  - Key ticker snapshots
-  - Market-wide statistics
-  - Sector/industry performance
-  - Recent market movements
-- [ ] Include relevant dates
-- [ ] Include data sources
+### 3.5 Market Context
+- [ ] Include ticker snapshots, market-wide stats, sector performance, recent movements, dates, and data sources when available; leave empty structures when unavailable.
 
-### 3.6 Ticker Agent Results Section
-- [ ] Aggregate ticker agent responses:
-  - Questions asked
-  - Intents identified
-  - Summaries generated
-  - Metrics extracted
-- [ ] Include source information
-- [ ] Format for readability
+### 3.6 Ticker Agent Results
+- [ ] List all questions with detected intent, summary, and metrics; include source/trace info if provided by the stub.
 
 ### 3.7 Narrative Generation
-- [ ] Generate human-readable narrative:
-  - Executive summary
-  - Key findings
-  - Issues discovered
-  - Recommendations
-  - Overall assessment
-- [ ] Use natural language
-- [ ] Make it business-friendly
-- [ ] Include specific numbers and details
-- [ ] Highlight critical issues
-- [ ] Provide actionable insights
+- [ ] Generate an exec-ready summary with key findings, issues, recommendations, and specific numbers; ensure it references the structured results.
 
 ### 3.8 Summary Statistics
-- [ ] Calculate summary statistics:
-  - Total trades processed
-  - Trades with issues (count and percentage)
-  - Total marks processed
-  - Marks flagged (count and percentage)
-  - Overall status (OK/WARNING/ERROR)
-- [ ] Include breakdowns by:
-  - Issue type
-  - Severity
-  - Ticker
-  - Counterparty
+- [ ] Compute totals and percentages for trades and marks, plus breakdowns by issue type/severity/ticker/counterparty.
 
 ### 3.9 Execution Metadata
-- [ ] Include execution details:
-  - Execution time (milliseconds)
-  - Timestamp
-  - Agents executed
-  - Scenario name
-  - Configuration used
-- [ ] Include performance metrics
-- [ ] Include error information (if any)
+- [ ] Record timings, timestamp, scenario name, configuration used, agents executed, and any errors encountered.
 
-### 3.10 Report Generation
-- [ ] Implement `generate_report(results)` method:
-  - Aggregate all sub-agent results
-  - Generate narrative
-  - Calculate summary statistics
-  - Format as structured JSON
-  - Return complete report
-- [ ] Support JSON output format
-- [ ] Support pretty-printing (indented JSON)
-- [ ] Save to file (optional)
+### 3.10 Report Generation Method
+- [ ] Implement `generate_report(results: dict) -> dict` that assembles all sections, pretty-prints on demand, and can optionally write to a file.
 
 ### 3.11 Example Report
-- [ ] Generate `examples/combined_report_example.json`:
-  - Use one of the scenarios
-  - Include all sections
-  - Show complete structure
-  - Use realistic data
-  - Format nicely for readability
+- [ ] Populate `examples/combined_report_example.json` with realistic data from one scenario, fully shaped per schema, and human-readable indentation.
 
 ## Configuration Management
 
 ### 4.1 Configuration File
-- [ ] Create `src/desk_agent/config.py`
-- [ ] Load configuration from:
-  - Environment variables
-  - Config file (YAML/JSON)
-  - Default values
-- [ ] Support configuration for:
-  - Sub-agent settings
-  - Scenario paths
-  - Tolerance thresholds
-  - Logging levels
-  - API endpoints
-  - Timeout values
+- [ ] Implement `config.py` to load from env vars (via `load_dotenv()`), YAML/JSON file, then defaults; expose getters for sub-agent settings, paths, tolerances, logging levels, API endpoints, timeouts, and retry policy keys (`DESK_AGENT_MAX_RETRIES`, `DESK_AGENT_BACKOFF_MS`, `DESK_AGENT_ABORT_AFTER_RETRY` with defaults: 2 retries, 500ms backoff, abort on 3rd failure capturing partial results).
 
 ### 4.2 Sub-Agent Configuration
-- [ ] Configure Reference Master:
-  - Data path
-  - Normalization settings
-- [ ] Configure Trade QA Agent:
-  - Tolerance thresholds
-  - Valid counterparties
-  - Settlement rules
-- [ ] Configure Pricing Agent:
-  - Tolerance thresholds
-  - Stale mark thresholds
-- [ ] Configure Ticker Agent:
-  - LLM model settings
-  - Intent definitions path
+- [ ] Reference Master: data path and normalization settings.
+- [ ] Trade QA: tolerance thresholds, valid counterparties list, settlement rules.
+- [ ] Pricing: tolerance thresholds and stale mark thresholds.
+- [ ] Ticker Agent: LLM model/config stub and intent definitions path.
 
 ## Testing
 
 ### 5.1 Unit Tests
-- [ ] Test orchestrator initialization
-- [ ] Test scenario loading
-- [ ] Test scenario validation
-- [ ] Test sub-agent integration (mocked)
-- [ ] Test error handling
-- [ ] Test report generation
+- [ ] Cover orchestrator init, scenario loading/validation, mocked sub-agent integration, error handling, and report generation.
 
 ### 5.2 Integration Tests
-- [ ] Test full workflow with each scenario:
-  - Clean day scenario
-  - Bad mark scenario
-  - Wrong ticker mapping scenario
-  - Mis-booked trade scenario
-  - High-vol day scenario
-- [ ] Test with real sub-agents (if possible)
-- [ ] Test error recovery
-- [ ] Test concurrent scenario execution (if applicable)
+- [ ] Run full workflow for each scenario (clean day, bad mark, wrong ticker mapping, mis-booked trade, high-vol day) using stubs; include error recovery and optional concurrent execution if supported.
 
 ### 5.3 Scenario Tests
-- [ ] Test each scenario:
-  - Scenario loads correctly
-  - Scenario executes successfully
-  - Expected results are produced
-  - Report structure is correct
-- [ ] Verify expected outcomes match actual outcomes
-- [ ] Test edge cases in scenarios
+- [ ] Ensure each scenario loads, executes, produces expected structural output, and exercises edge cases.
 
 ### 5.4 Report Validation Tests
-- [ ] Test report structure:
-  - All required sections present
-  - Data types are correct
-  - No missing required fields
-- [ ] Test report content:
-  - Data is aggregated correctly
-  - Narrative is generated
-  - Summary statistics are accurate
-- [ ] Test report formatting
+- [ ] Validate report structure, data types, aggregation correctness, narrative presence, summary stats accuracy, and formatting.
 
 ## Logging
 
 ### 6.1 Orchestration Logging
-- [ ] Log scenario execution start
-- [ ] Log each sub-agent execution:
-  - Agent name
-  - Input data
-  - Execution time
-  - Results summary
-  - Errors (if any)
-- [ ] Log workflow steps
-- [ ] Log report generation
-- [ ] Log execution completion
+- [ ] Log scenario start, each sub-agent call (name, input refs, execution time, result summary, errors), workflow steps, report generation, and completion.
 
 ### 6.2 Performance Logging
-- [ ] Log execution times:
-  - Total execution time
-  - Per-agent execution times
-  - Per-scenario step times
-- [ ] Log slow operations
-- [ ] Track performance metrics
+- [ ] Log total execution time plus per-agent and per-step timings; flag slow operations.
 
 ### 6.3 Error Logging
-- [ ] Log all errors with context:
-  - Scenario name
-  - Step where error occurred
-  - Error type and message
-  - Stack trace
-  - Input data
-- [ ] Log warnings
-- [ ] Log recovery actions
+- [ ] Log errors with scenario name, step, type/message, stack trace, and relevant inputs; log warnings and recovery actions.
 
 ## Documentation
 
 ### 7.1 Module Documentation
-- [ ] Create `src/desk_agent/README.md`:
-  - Overview of orchestrator
-  - Usage examples
-  - Configuration guide
-  - Scenario format documentation
-  - Report format documentation
-  - Integration guide
+- [ ] Create `src/desk_agent/README.md` with orchestrator overview, usage, configuration guide, scenario/report format, and integration notes.
 
 ### 7.2 Scenario Documentation
-- [ ] Document scenario format
-- [ ] Document each scenario:
-  - Purpose
-  - Expected outcomes
-  - Use cases
-- [ ] Provide scenario examples
-- [ ] Document how to create new scenarios
+- [ ] Document schema, each scenario’s purpose/expected outcome/use case, and how to add new scenarios.
 
 ### 7.3 Report Documentation
-- [ ] Document report structure
-- [ ] Document each section
-- [ ] Provide report examples
-- [ ] Document interpretation guidelines
+- [ ] Document report structure, section meanings, examples, and interpretation guidelines.
 
 ## Performance and Reliability
 
 ### 8.1 Performance Optimization
-- [ ] Optimize sub-agent execution:
-  - Parallel execution where possible
-  - Caching where appropriate
-  - Efficient data structures
-- [ ] Target: Complete scenario in <30 seconds
-- [ ] Profile and optimize hot paths
+- [ ] Optimize sub-agent execution (parallel where safe, caching if helpful, efficient data structures); target <30s end-to-end per scenario; profile hot paths.
 
 ### 8.2 Reliability
-- [ ] Handle sub-agent failures gracefully
-- [ ] Implement retry logic (if appropriate)
-- [ ] Implement timeout handling
-- [ ] Ensure partial results are returned
-- [ ] Validate data at each step
+- [ ] Implement retries/timeouts (config-driven), keep partial results, and validate data at each step.
 
 ### 8.3 Error Recovery
-- [ ] Continue execution on non-critical errors
-- [ ] Provide meaningful error messages
-- [ ] Include error context in report
-- [ ] Log all errors for debugging
+- [ ] Continue on non-critical errors with meaningful messages and contextual logs; include error context in the report.
 
 ## Evaluation Criteria
 
 ### 9.1 Functionality
-- [ ] Orchestrator runs reliably
-- [ ] All scenarios execute successfully
-- [ ] All sub-agents are integrated correctly
-- [ ] Reports are generated correctly
+- [ ] Orchestrator runs reliably; all scenarios execute; all sub-agents integrate correctly; reports are produced per schema.
 
 ### 9.2 Output Quality
-- [ ] Reports are business-grade:
-  - Professional formatting
-  - Clear narrative
-  - Actionable insights
-  - Complete information
-- [ ] Reports demonstrate integrated reasoning:
-  - Connections between issues
-  - Context-aware analysis
-  - Comprehensive view
+- [ ] Reports are business-grade with clear narrative and actionable insights; show integrated reasoning across issues/context.
 
 ### 9.3 Performance
-- [ ] Scenarios complete in reasonable time
-- [ ] System handles load appropriately
-- [ ] No memory leaks
-- [ ] Efficient resource usage
+- [ ] Scenarios complete in acceptable time; system handles load without memory leaks and uses resources efficiently.
 
 ## Optional Enhancements
 
 ### 10.1 Advanced Features
-- [ ] Support for custom workflow steps
-- [ ] Support for conditional execution
-- [ ] Support for workflow branching
-- [ ] Support for workflow loops/iterations
-- [ ] Support for parallel sub-agent execution
+- [ ] Add support for custom workflow steps, conditional execution, branching, loops/iterations, and parallel sub-agent execution (config-toggle).
 
 ### 10.2 Reporting Enhancements
-- [ ] Multiple report formats:
-  - JSON (current)
-  - Markdown
-  - HTML
-  - PDF
-- [ ] Interactive reports
-- [ ] Charts and visualizations
-- [ ] Export capabilities
+- [ ] Support additional report formats (Markdown, HTML, PDF), interactive views, charts/visualizations, and export options alongside JSON.
 
 ### 10.3 Scenario Management
-- [ ] Scenario versioning
-- [ ] Scenario templates
-- [ ] Scenario validation tools
-- [ ] Scenario comparison tools
-- [ ] Scenario execution history
+- [ ] Add scenario versioning, templates, validation tools, comparison tools, and execution history tracking.
 
 ### 10.4 Integration Enhancements
-- [ ] Webhook support
-- [ ] Event-driven execution
-- [ ] Real-time updates
-- [ ] API endpoints for orchestrator
-- [ ] CLI interface
-
+- [ ] Add webhook support, event-driven execution, real-time updates, orchestrator API endpoints, and a CLI wrapper.

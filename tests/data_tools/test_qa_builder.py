@@ -68,3 +68,24 @@ def test_qa_builder_generate_qa_pairs_smoke():
         # But we should verify the exception is reasonable (not an import error, etc.)
         assert not isinstance(e, (ImportError, AttributeError, NameError)), \
             f"Unexpected error type: {type(e).__name__}: {e}"
+
+
+def test_extract_mda_surfaces_errors(monkeypatch):
+    """Parser failures should surface as runtime errors."""
+    from src.data_tools import qa_builder
+
+    class DummyParser:
+        def get_10K_items(self, *a, **k):
+            raise ValueError("boom")
+
+    monkeypatch.setattr(qa_builder, "FilingParser", lambda: DummyParser())
+    with pytest.raises(RuntimeError, match="Failed to extract MD&A"):
+        qa_builder.extract_mda_section("AAPL", 2023)
+
+
+def test_flatten_dataset_rejects_bad_shape():
+    """Unexpected dataset shapes should raise instead of silently dropping."""
+    from src.data_tools.qa_builder import _flatten_dataset
+
+    with pytest.raises(ValueError, match="Unexpected dataset item shape"):
+        _ = _flatten_dataset([123])

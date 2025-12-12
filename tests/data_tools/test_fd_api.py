@@ -4,7 +4,7 @@ import os
 import pytest
 from datetime import date
 from dotenv import load_dotenv
-from src.data_tools.fd_api import get_price_snapshot
+from src.data_tools.fd_api import get_company_facts, get_price_snapshot
 from src.data_tools.schemas import EquitySnapshot, PriceSnapshot
 
 # Load environment variables
@@ -308,3 +308,54 @@ def test_get_equity_snapshot_none_date(api_key):
     assert data["price"] > 0
     assert data["market_cap"] > 0
     assert data["source"] == "financialdatasets.ai"
+
+
+def test_get_company_facts_non_200(monkeypatch):
+    """Non-200 responses should surface as errors."""
+
+    class DummyResponse:
+        status_code = 503
+        text = "down"
+
+        def json(self):
+            return {"error": "temporarily unavailable"}
+
+    monkeypatch.setattr("src.data_tools.fd_api.requests.get", lambda *a, **k: DummyResponse())
+    with pytest.raises(Exception):
+        get_company_facts("AAPL")
+
+
+def test_get_company_facts_missing_fields(monkeypatch):
+    """Missing required fields should raise for visibility."""
+
+    class DummyResponse:
+        status_code = 200
+
+        def json(self):
+            return {"company_facts": {"sector": "Tech"}}
+
+        @property
+        def text(self):
+            return ""
+
+    monkeypatch.setattr("src.data_tools.fd_api.requests.get", lambda *a, **k: DummyResponse())
+    with pytest.raises(ValueError, match="missing market_cap"):
+        get_company_facts("AAPL")
+
+
+def test_get_price_snapshot_insufficient_data(monkeypatch):
+    """Insufficient history should raise instead of defaulting returns."""
+
+    class DummyResponse:
+        status_code = 200
+
+        def json(self):
+            return {"prices": [{"close": 10.0, "volume": 1000, "date": "2024-06-05"}]}
+
+        @property
+        def text(self):
+            return ""
+
+    monkeypatch.setattr("src.data_tools.fd_api.requests.get", lambda *a, **k: DummyResponse())
+    with pytest.raises(ValueError, match="Insufficient data"):
+        get_price_snapshot("AAPL", date(2024, 6, 5))
