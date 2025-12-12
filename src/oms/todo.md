@@ -55,7 +55,7 @@ Audience: implementation agent. Treat external dependencies as stubs (e.g., `ref
 - [ ] Overall status rules: ERROR if any ERROR issues; WARNING if no ERROR but at least one WARNING; else OK. Collect all issues (no early exit).
 
 ### 3.3 Initialization
-- [ ] Initialize refmaster normalizer stub; load config (price tolerances, counterparties, settlement rules, API keys/paths).
+- [x] Initialize refmaster normalizer stub; load config (price tolerances, counterparties, settlement rules, API keys/paths).
 
 ### 3.4 Explanation Generation
 - [x] Produce concise, actionable summary with counts/types of issues and recommendations for fixes.

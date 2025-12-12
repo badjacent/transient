@@ -5,6 +5,8 @@ from __future__ import annotations
 import json
 from pathlib import Path
 from typing import Any, Dict, List
+import os
+import time
 
 try:
     import pandas as pd
@@ -13,13 +15,16 @@ except Exception:  # pragma: no cover
 
 from src.pricing.normalizer import MarketNormalizer
 from src.pricing.schema import EnrichedMark, Mark
+from src.pricing.logger import setup_logger
 
 
 class PricingAgent:
     """Run mark validation and reporting."""
 
     def __init__(self, normalizer: MarketNormalizer | None = None):
+        setup_logger()
         self.normalizer = normalizer or MarketNormalizer()
+        self.logger = logging.getLogger(__name__)
 
     def _load_marks(self, marks_input) -> List[Dict[str, Any]]:
         if isinstance(marks_input, list):
@@ -41,13 +46,19 @@ class PricingAgent:
         raise ValueError("marks_input must be list/CSV/JSON/DataFrame path/object")
 
     def run(self, marks_input) -> Dict[str, Any]:
+        start_ts = time.perf_counter()
         marks_records = self._load_marks(marks_input)
+        self.logger.info("pricing_agent start count=%d", len(marks_records))
         enriched: List[EnrichedMark] = self.normalizer.enrich_marks(marks_records)
         enriched_dicts = [m.model_dump() for m in enriched]
         summary = self._aggregate(enriched)
         explanations = [self._explain(m) for m in enriched]
         for idx, exp in enumerate(explanations):
             enriched_dicts[idx]["explanation"] = exp
+        duration_ms = (time.perf_counter() - start_ts) * 1000
+        self.logger.info("pricing_agent complete count=%d duration_ms=%.2f", len(enriched_dicts), duration_ms)
+        self._audit(enriched_dicts)
+        self._write_metrics(enriched_dicts, summary, duration_ms)
         return {
             "enriched_marks": enriched_dicts,
             "summary": summary,
@@ -91,9 +102,51 @@ class PricingAgent:
             return f"{mark.ticker} mark dated {mark.as_of_date} exceeds stale threshold; refresh required."
         return f"{mark.ticker} within tolerance."
 
+    def _audit(self, enriched: List[Dict[str, Any]]) -> None:
+        """Append audit entries to file if PRICING_AUDIT_LOG is set."""
+        audit_path = os.getenv("PRICING_AUDIT_LOG")
+        if not audit_path:
+            return
+        try:
+            path = Path(audit_path)
+            path.parent.mkdir(parents=True, exist_ok=True)
+            with path.open("a", encoding="utf-8") as f:
+                for m in enriched:
+                    f.write(json.dumps(m, ensure_ascii=False) + "\n")
+        except Exception as exc:
+            self.logger.warning("audit write failed: %s", exc)
 
-def generate_report(enriched_payload: Dict[str, Any], output_path: str | None = None) -> str:
-    """Build a simple Markdown report; optionally write to file. Returns the Markdown string."""
+    def _write_metrics(self, enriched: List[Dict[str, Any]], summary: Dict[str, Any], duration_ms: float) -> None:
+        """Write simple metrics JSONL if PRICING_METRICS_LOG is set."""
+        metrics_path = os.getenv("PRICING_METRICS_LOG")
+        if not metrics_path:
+            return
+        counts = summary.get("counts", {})
+        payload = {
+            "ts_ms": int(time.time() * 1000),
+            "total_marks": summary.get("total_marks", len(enriched)),
+            "counts": counts,
+            "duration_ms": duration_ms,
+            "max_deviation": summary.get("max_deviation"),
+            "average_deviation": summary.get("average_deviation"),
+        }
+        try:
+            path = Path(metrics_path)
+            path.parent.mkdir(parents=True, exist_ok=True)
+            with path.open("a", encoding="utf-8") as f:
+                f.write(json.dumps(payload, ensure_ascii=False) + "\n")
+        except Exception as exc:
+            self.logger.warning("metrics write failed: %s", exc)
+
+
+def generate_report(enriched_payload: Dict[str, Any], output_path: str | None = None, output_format: str = "md") -> str:
+    """Build a simple report; supports Markdown or JSON. Returns the report string."""
+    if output_format == "json":
+        report = json.dumps(enriched_payload, indent=2)
+        if output_path:
+            Path(output_path).write_text(report, encoding="utf-8")
+        return report
+
     lines = []
     summary = enriched_payload.get("summary", {})
     lines.append("# Pricing Report")

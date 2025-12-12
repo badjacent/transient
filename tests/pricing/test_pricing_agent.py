@@ -21,6 +21,20 @@ def test_pricing_agent_run_csv(tmp_path, monkeypatch):
     assert "enriched_marks" in result
 
 
+def test_pricing_agent_run_scenario_file(monkeypatch):
+    agent = PricingAgent()
+
+    # Stub out enrich_marks to avoid external calls while asserting load succeeds
+    def _stub_enrich(records):
+        return []
+
+    monkeypatch.setattr(agent.normalizer, "enrich_marks", _stub_enrich)
+    # Should process existing data/marks.csv without errors
+    result = agent.run("data/marks.csv")
+    assert "enriched_marks" in result
+    assert "summary" in result
+
+
 def test_generate_report(tmp_path):
     from src.pricing.pricing_agent import generate_report
 

@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import csv
 import json
+import logging
+import os
 import re
 from functools import lru_cache
 from pathlib import Path
@@ -11,20 +13,42 @@ from typing import Iterable, List, Optional
 
 from src.refmaster.schema import Equity, NormalizationResult
 
+logger = logging.getLogger(__name__)
+
 
 @lru_cache(maxsize=1)
 def load_equities(data_path: Optional[str] = None) -> List[Equity]:
-    """Load equities from CSV or JSON; falls back to refmaster_data.json in this package."""
-    base_path = Path(data_path) if data_path else Path(__file__).parent / "refmaster_data.json"
+    """Load equities from CSV or JSON; falls back to refmaster_data.json in this package or env override."""
+    env_path = os.getenv("REFMASTER_DATA_PATH")
+    base_path = Path(data_path or env_path) if (data_path or env_path) else Path(__file__).parent / "refmaster_data.json"
     if base_path.exists() and base_path.suffix.lower() == ".csv":
+        equities: List[Equity] = []
         with base_path.open(encoding="utf-8") as f:
             reader = csv.DictReader(f)
-            rows = [Equity(**row) for row in reader if row]
-        return rows
+            for row in reader:
+                if not row:
+                    continue
+                try:
+                    equities.append(Equity(**row))
+                except Exception as exc:
+                    logger.warning("Skipping malformed equity row %s: %s", row, exc)
+        if equities:
+            return equities
+        raise ValueError(f"No valid equity rows in {base_path}")
     if base_path.exists() and base_path.suffix.lower() == ".json":
         data = json.loads(base_path.read_text(encoding="utf-8"))
         equities = data.get("equities", data) if isinstance(data, dict) else data
-        return [Equity(**eq) for eq in equities if isinstance(eq, dict)]
+        parsed: List[Equity] = []
+        for eq in equities:
+            if not isinstance(eq, dict):
+                continue
+            try:
+                parsed.append(Equity(**eq))
+            except Exception as exc:
+                logger.warning("Skipping malformed equity entry %s: %s", eq, exc)
+        if parsed:
+            return parsed
+        raise ValueError(f"No valid equities parsed from {base_path}")
     raise FileNotFoundError(f"Could not load refmaster data from {base_path}")
 
 
@@ -67,6 +91,7 @@ class NormalizerAgent:
                 )
         scored.sort(key=lambda r: r.confidence, reverse=True)
         if not scored or scored[0].confidence < self.thresholds["reject"]:
+            logger.info("normalize input=%s result=unknown", input_str)
             return []
         # Ambiguity detection
         if len(scored) > 1 and scored[0].confidence <= self.thresholds["ambiguous_high"]:
@@ -74,6 +99,13 @@ class NormalizerAgent:
                 for res in scored:
                     if res.confidence >= self.thresholds["ambiguous_low"]:
                         res.ambiguous = True
+        logger.info(
+            "normalize input=%s top=%s conf=%.2f ambiguous=%s",
+            input_str,
+            scored[0].equity.symbol if scored else None,
+            scored[0].confidence if scored else 0,
+            scored[0].ambiguous if scored else False,
+        )
         return scored[:top_k]
 
     def _score(self, eq: Equity, extracted: dict, input_str: str) -> tuple[float, List[str]]:

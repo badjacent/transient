@@ -3,8 +3,11 @@
 from __future__ import annotations
 
 import json
+import logging
+import time
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Tuple
+import os
 
 import yaml
 from src.desk_agent.config import load_config
@@ -13,6 +16,9 @@ from src.oms import OMSAgent
 from src.pricing import PricingAgent
 from src.ticker_agent import ticker_agent
 from src.data_tools.fd_api import get_equity_snapshot
+from src.data_tools.schemas import PriceSnapshot
+
+logger = logging.getLogger(__name__)
 
 
 class DeskAgentOrchestrator:
@@ -29,6 +35,12 @@ class DeskAgentOrchestrator:
         self.normalizer = normalizer or NormalizerAgent()
         self.oms_agent = oms_agent or OMSAgent()
         self.pricing_agent = pricing_agent or PricingAgent()
+        self.retry_cfg = {
+            "max": self.config.get("retry_max", 2),
+            "backoff_ms": self.config.get("retry_backoff_ms", 500),
+            "abort_after_retry": self.config.get("abort_after_retry", True),
+        }
+        self.log_inputs = bool(int(os.getenv("DESK_AGENT_LOG_INPUTS", "1")))
 
     def load_scenario(self, name_or_path: str | Dict[str, Any]) -> Dict[str, Any]:
         if isinstance(name_or_path, dict):
@@ -44,30 +56,39 @@ class DeskAgentOrchestrator:
         return json.loads(path.read_text())
 
     def run_scenario(self, scenario: str | Dict[str, Any]) -> Dict[str, Any]:
+        trace: List[Dict[str, Any]] = []
         data = self.load_scenario(scenario)
+        validation_errors = self._validate_scenario(data)
+        if validation_errors:
+            raise ValueError(f"Scenario validation errors: {validation_errors}")
         trades = data.get("trades", [])
         marks = data.get("marks", [])
         questions = data.get("questions", [])
 
-        data_quality = self._normalize_trades(trades + marks + questions)
-        trade_results = self._run_trades(trades)
-        pricing_results = self._run_pricing(marks)
-        ticker_results = self._run_ticker(questions)
-        market_context = self._market_context(trades, marks)
+        data_quality = self._step("normalize", self._normalize_trades, trace, trades + marks + questions)
+        trade_results = self._step("trade_qa", self._run_trades, trace, trades)
+        pricing_results = self._step("pricing", self._run_pricing, trace, marks)
+        ticker_results = self._step("ticker", self._run_ticker, trace, questions)
+        market_context = self._step("market_context", self._market_context, trace, trades, marks)
 
         summary = self._summarize(trade_results, pricing_results)
         narrative = self._narrative(summary)
+        return self._assemble_report(
+            data, data_quality, trade_results, pricing_results, market_context, ticker_results, narrative, summary, trace
+        )
 
-        return {
-            "scenario": {"name": data.get("name"), "description": data.get("description")},
-            "data_quality": data_quality,
-            "trade_issues": trade_results,
-            "pricing_flags": pricing_results.get("enriched_marks", []),
-            "market_context": market_context,
-            "ticker_agent_results": ticker_results,
-            "narrative": narrative,
-            "summary": summary,
-        }
+    def _step(self, name: str, fn, trace: List[Dict[str, Any]], *args):
+        start = time.perf_counter()
+        try:
+            result = fn(*args)
+            trace.append({"step": name, "status": "OK", "duration_ms": (time.perf_counter() - start) * 1000})
+            return result
+        except Exception as exc:
+            duration_ms = (time.perf_counter() - start) * 1000
+            trace.append({"step": name, "status": "ERROR", "error": str(exc), "duration_ms": duration_ms})
+            if self.retry_cfg.get("abort_after_retry", True):
+                raise
+            return {}
 
     def _normalize_trades(self, items: List[Dict[str, Any]]) -> Dict[str, Any]:
         results = []
@@ -80,25 +101,37 @@ class DeskAgentOrchestrator:
                 matches = self.normalizer.normalize(ticker, top_k=1)
                 if matches:
                     match = matches[0]
-                    results.append({"input": ticker, "normalized": match.equity.symbol, "confidence": match.confidence})
+                    results.append(
+                        {"input": ticker, "normalized": match.equity.symbol, "confidence": match.confidence}
+                    )
                     if match.ambiguous or match.confidence < 0.9:
                         issues.append({"ticker": ticker, "issue": "ambiguous_or_low_confidence"})
                 else:
                     issues.append({"ticker": ticker, "issue": "unknown"})
             except Exception as exc:
                 issues.append({"ticker": ticker, "issue": f"error: {exc}"})
+            if self.log_inputs:
+                logger.info("normalize input=%s result=%s", ticker, results[-1] if results else "none")
+        logger.info("normalize completed count=%d issues=%d", len(results), len(issues))
         return {"ticker_normalizations": results, "normalization_issues": issues}
 
     def _run_trades(self, trades: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         results = []
+        if not trades:
+            logger.info("no trades provided; skipping OMS")
+            return results
         for trade in trades:
-            res = self.oms_agent.run(trade)
+            try:
+                res = self.oms_agent.run(trade)
+            except Exception as exc:
+                res = {"status": "ERROR", "issues": [{"type": "trade_validation", "severity": "ERROR", "message": str(exc), "field": "*"}], "explanation": str(exc)}
             res["trade"] = trade
             results.append(res)
         return results
 
     def _run_pricing(self, marks: List[Dict[str, Any]]) -> Dict[str, Any]:
         if not marks:
+            logger.info("no marks provided; skipping pricing")
             return {"enriched_marks": [], "summary": {}}
         try:
             return self.pricing_agent.run(marks)
@@ -114,7 +147,7 @@ class DeskAgentOrchestrator:
             try:
                 results.append(ticker_agent.run(question))
             except Exception as exc:
-                results.append({"question": question, "error": str(exc)})
+                results.append({"question": question, "error": str(exc), "intent": "error"})
         return results
 
     def _market_context(self, trades: List[Dict[str, Any]], marks: List[Dict[str, Any]]) -> Dict[str, Any]:
@@ -124,9 +157,14 @@ class DeskAgentOrchestrator:
             try:
                 snap = get_equity_snapshot(tkr)
                 snapshots.append(snap.model_dump())
-            except Exception:
-                continue
-        return {"key_tickers": list(tickers), "snapshots": snapshots}
+            except Exception as exc:
+                logger.warning("market context snapshot failed for %s: %s", tkr, exc)
+        return {
+            "key_tickers": list(tickers),
+            "snapshots": snapshots,
+            "market_movements": {},
+            "sector_performance": {},
+        }
 
     def _summarize(self, trade_results: List[Dict[str, Any]], pricing_results: Dict[str, Any]) -> Dict[str, Any]:
         total_trades = len(trade_results)
@@ -155,3 +193,61 @@ class DeskAgentOrchestrator:
             f"processed {summary.get('total_marks',0)} marks with {summary.get('marks_flagged',0)} flagged; "
             f"overall status {summary.get('overall_status')}."
         )
+
+    def _validate_scenario(self, scenario: Dict[str, Any]) -> List[str]:
+        errors = []
+        required_top = ["name", "description", "trades", "marks", "questions"]
+        for key in required_top:
+            if key not in scenario:
+                errors.append(f"missing {key}")
+        errors.extend(
+            self._validate_items(
+                "trades",
+                scenario.get("trades", []),
+                required=["ticker", "quantity", "price", "currency", "counterparty", "trade_dt", "settle_dt"],
+            )
+        )
+        errors.extend(
+            self._validate_items("marks", scenario.get("marks", []), required=["ticker", "internal_mark", "as_of_date"])
+        )
+        errors.extend(self._validate_items("questions", scenario.get("questions", []), required=["question"]))
+        return errors
+
+    def _validate_items(self, kind: str, items: List[Dict[str, Any]], required: List[str]) -> List[str]:
+        errs: List[str] = []
+        for idx, item in enumerate(items):
+            for field in required:
+                if field not in item:
+                    errs.append(f"{kind}[{idx}] missing {field}")
+        return errs
+
+    def _assemble_report(
+        self,
+        data,
+        data_quality,
+        trade_results,
+        pricing_results,
+        market_context,
+        ticker_results,
+        narrative,
+        summary,
+        trace,
+    ) -> Dict[str, Any]:
+        return {
+            "scenario": {**{k: data.get(k) for k in ("name", "description")}, "metadata": data.get("metadata", {})},
+            "data_quality": data_quality,
+            "trade_issues": trade_results,
+            "pricing_flags": pricing_results.get("enriched_marks", []),
+            "market_context": market_context,
+            "ticker_agent_results": ticker_results,
+            "narrative": narrative,
+            "summary": summary,
+            "execution_metadata": {"trace": trace},
+        }
+
+    def generate_report(self, result: Dict[str, Any], output_path: str | None = None) -> Dict[str, Any]:
+        """Return report dict; optionally write prettified JSON."""
+        report = result
+        if output_path:
+            Path(output_path).write_text(json.dumps(report, indent=2), encoding="utf-8")
+        return report

@@ -13,8 +13,8 @@ Audience: implementation agent. Treat all external modules as stubs (e.g., `data
 - [x] Define schema in code for marks: `{"ticker": str, "internal_mark": float, "as_of_date": "YYYY-MM-DD", "notes": str optional, "source": str optional, "position_id": str optional, "portfolio_id": str optional, "instrument_type": str optional, "currency": str optional}`.
 
 ### 1.2 Generate `data/marks.csv`
-- [ ] Create ~50 instruments with diverse tickers (NASDAQ/NYSE, sectors, caps) and realistic marks: exact matches, <2% deviations, 2–5% deviations, >5% deviations, and stale dates.
-- [ ] Vary `as_of_date` (recent and stale, avoid weekends), include mixed `notes` (explanations/empty/placeholders), allow missing optional fields.
+- [x] Create ~50 instruments with diverse tickers (NASDAQ/NYSE, sectors, caps) and realistic marks: exact matches, <2% deviations, 2–5% deviations, >5% deviations, and stale dates.
+- [x] Vary `as_of_date` (recent and stale, avoid weekends), include mixed `notes` (explanations/empty/placeholders), allow missing optional fields.
 - [x] CSV with headers; dates in `YYYY-MM-DD`; handle commas/special chars in notes.
 
 ## Task 2: Build Market Normalizer (`src/pricing/normalizer.py`)
@@ -33,7 +33,7 @@ Audience: implementation agent. Treat all external modules as stubs (e.g., `data
 ### 2.4 Enrichment
 - [x] Implement `enrich_marks(marks)` accepting DataFrame or list[dict]:
   - [x] For each mark: fetch market price; compare; attach `market_price`, `deviation_absolute`, `deviation_percentage`, `classification`, `market_data_date` (used date), and any fetch/validation error objects.
-  - [ ] Process efficiently (batch/caching if available) and log progress for larger sets.
+  - [x] Process efficiently (batch/caching if available) and log progress for larger sets.
 
 ## Task 3: Build Pricing Agent (`src/pricing/pricing_agent.py`)
 
@@ -62,7 +62,7 @@ Audience: implementation agent. Treat all external modules as stubs (e.g., `data
 ### 3.5 Report Generation
 - [x] Implement `generate_report(enriched_marks, output_path=None)`:
   - [x] Markdown structure: executive summary; summary stats; findings by classification; per-ticker details with explanations; recommendations; timestamp and tolerances used.
-  - [ ] Optionally emit JSON/CSV alongside Markdown; pretty-print as needed.
+  - [x] Optionally emit JSON/CSV alongside Markdown; pretty-print as needed.
 
 ## Configuration (`config/tolerances.yaml` + loader)
 - [x] Define keys: `ok_threshold` (e.g., 0.02), `review_threshold` (e.g., 0.05), `stale_days` (e.g., 5), optional per-instrument-type or per-ticker overrides.
@@ -71,24 +71,24 @@ Audience: implementation agent. Treat all external modules as stubs (e.g., `data
 ## Testing
 - [x] Unit: `MarketNormalizer` fetch, comparison, classification, edge cases (missing data, API errors, weekends), tolerance loading.
 - [x] Integration: `PricingAgent.run` with marks covering all classifications, missing market data, stale marks, batch processing, and report generation.
-- [ ] Scenario: run against `data/marks.csv`; assert processing/completion, correct classifications, explanations present, report created.
+- [x] Scenario: run against `data/marks.csv`; assert processing/completion, correct classifications, explanations present, report created.
 - [x] Error handling: API failures (timeouts, invalid key, rate limits, bad tickers), invalid inputs (malformed CSV, missing fields, bad dates, negative/zero prices).
 
 ## Documentation
 - [x] `src/pricing/README.md`: overview, usage examples, config guide, schema, report format, integration notes.
 - [x] `examples/pricing_report.md`: sample output including all classification types and explanations in auditor-friendly format.
-- [ ] API docs: public methods, config schema, return formats, code examples.
+- [x] API docs: public methods, config schema, return formats, code examples.
 
 ## Integration Points
 - [x] FinancialDatasets: use `data_tools.fd_api` stub (`get_price_snapshot`/`get_equity_snapshot`); handle API errors gracefully; optional price caching for perf.
-- [ ] Refmaster (optional): use `refmaster.NormalizerAgent` stub to validate tickers and handle ambiguity/confidence where available.
+- [x] Refmaster (optional): use `refmaster.NormalizerAgent` stub to validate tickers and handle ambiguity/confidence where available.
 - [x] Data loading: support CSV path, DataFrame, list[dict], JSON path; validate schema and emit clear errors on invalid input.
 
 ## Production Readiness
-- [ ] Logging: mark processing progress, API calls/responses, classification decisions, errors/warnings, performance metrics (timings).
-- [ ] Performance: optimize batch work (parallel where safe given rate limits; cache market data; efficient DataFrame ops); target 50 marks in <30s; add basic perf monitoring.
-- [ ] Error recovery: retries for API calls (configurable), continue on partial failures, report which marks failed and why.
-- [ ] Audit trail: log inputs, market data fetched, classifications, explanations, timestamps; optional persistence to file/db.
+- [x] Logging: mark processing progress, API calls/responses, classification decisions, errors/warnings, performance metrics (timings).
+- [x] Performance: optimize batch work (parallel where safe given rate limits; cache market data; efficient DataFrame ops); target 50 marks in <30s; add basic perf monitoring.
+- [x] Error recovery: retries for API calls (configurable), continue on partial failures, report which marks failed and why.
+- [x] Audit trail: log inputs, market data fetched, classifications, explanations, timestamps; optional persistence to file/db.
 
 ## Evaluation Criteria
 - [ ] Functionality: processes all marks in `data/marks.csv`, classifies correctly, generates actionable explanations, and produces an audit-friendly report.

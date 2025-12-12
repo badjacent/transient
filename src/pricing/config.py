@@ -16,6 +16,9 @@ DEFAULTS = {
     "ok_threshold": 0.02,
     "review_threshold": 0.05,
     "stale_days": 5,
+    "retry_count": 0,
+    "retry_backoff_ms": 200,
+    "max_workers": 1,
 }
 
 
@@ -31,4 +34,7 @@ def load_tolerances(path: str | None = None) -> Dict[str, Any]:
     cfg["ok_threshold"] = float(os.getenv("PRICING_OK_THRESHOLD", cfg["ok_threshold"]))
     cfg["review_threshold"] = float(os.getenv("PRICING_REVIEW_THRESHOLD", cfg["review_threshold"]))
     cfg["stale_days"] = int(os.getenv("PRICING_STALE_DAYS", cfg["stale_days"]))
+    cfg["retry_count"] = int(os.getenv("PRICING_RETRY_COUNT", cfg["retry_count"]))
+    cfg["retry_backoff_ms"] = int(os.getenv("PRICING_RETRY_BACKOFF_MS", cfg["retry_backoff_ms"]))
+    cfg["max_workers"] = int(os.getenv("PRICING_MAX_WORKERS", cfg["max_workers"]))
     return cfg

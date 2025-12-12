@@ -3,9 +3,9 @@ Audience: implementation agent. Treat all referenced sub-agents as existing stub
 
 ## Module Structure Setup
 - [x] Ensure `src/desk_agent/` exists with `__init__.py`, `orchestrator.py`, and `config.py`; files may start as stubs but must be importable.
-- [ ] Ensure `tests/desk_agent/` exists with `__init__.py` and `test_orchestrator.py` placeholder.
+- [x] Ensure `tests/desk_agent/` exists with `__init__.py` and `test_orchestrator.py` placeholder.
 - [x] Ensure project-root `scenarios/` and `logs/` directories exist; keep write path configurable via `config.py`.
-- [ ] Create/update `examples/combined_report_example.json` as a template output produced by the orchestrator.
+- [x] Create/update `examples/combined_report_example.json` as a template output produced by the orchestrator.
 
 ## Task 1: Build the Orchestrator
 
@@ -17,33 +17,33 @@ Audience: implementation agent. Treat all referenced sub-agents as existing stub
 ### 1.2 Scenario Loading
 - [x] Implement `load_scenario(name_or_path: str) -> dict` that reads from `scenarios/` (JSON or YAML), validates schema, and surfaces `FileNotFoundError` with a helpful message.
 - [x] Accept already-loaded scenario dicts without reloading.
-- [ ] Provide schema validation errors that list missing/invalid fields by path.
+- [x] Provide schema validation errors that list missing/invalid fields by path.
 
 ### 1.3 Workflow Execution
 - [x] Implement `run_scenario(scenario: str | dict) -> dict` that executes the ordered workflow and returns the integrated report.
 - [x] Execution order (enforce explicitly): load/accept scenario → validate schema → normalize tickers → trade QA → pricing validation → ticker questions → market context fetch → aggregate → narrative + stats.
-- [ ] Capture per-step timings, inputs, outputs, and exceptions in a structured trace attached to the report.
+- [x] Capture per-step timings, inputs, outputs, and exceptions in a structured trace attached to the report.
 
 ### 1.4 Reference Master Integration
-- [ ] Call `refmaster.NormalizerAgent` stub to normalize all identifiers in scenario trades/marks/questions; propagate confidence scores and ambiguity flags.
+- [x] Call `refmaster.NormalizerAgent` stub to normalize all identifiers in scenario trades/marks/questions; propagate confidence scores and ambiguity flags.
 - [ ] Surface normalization failures without stopping the workflow; include them in `data_quality`.
-- [ ] Log normalization inputs, resolved identifiers, and confidence.
+- [x] Log normalization inputs, resolved identifiers, and confidence.
 
 ### 1.5 Trade QA Integration
-- [ ] Call `oms.oms_agent.OMSAgent` stub for each trade; collect per-trade status/issues and an aggregate summary.
-- [ ] If no trades are present, skip with a logged no-op entry and mark `trade_issues` as empty.
-- [ ] On validation errors, continue but record error objects in the report.
+- [x] Call `oms.oms_agent.OMSAgent` stub for each trade; collect per-trade status/issues and an aggregate summary.
+- [x] If no trades are present, skip with a logged no-op entry and mark `trade_issues` as empty.
+- [x] On validation errors, continue but record error objects in the report.
 
 ### 1.6 Pricing Integration
-- [ ] Call `pricing.pricing_agent.PricingAgent` stub on marks; gather flags/classifications/deviations.
-- [ ] Handle empty marks with a logged skip; capture failures without aborting the run.
+- [x] Call `pricing.pricing_agent.PricingAgent` stub on marks; gather flags/classifications/deviations.
+- [x] Handle empty marks with a logged skip; capture failures without aborting the run.
 
 ### 1.7 Ticker Agent Integration
-- [ ] For each question, call `ticker_agent.ticker_agent.run` stub; collect intent, summary, and metrics per question.
-- [ ] Skip cleanly when no questions exist; errors are captured and surfaced in the report.
+- [x] For each question, call `ticker_agent.ticker_agent.run` stub; collect intent, summary, and metrics per question.
+- [x] Skip cleanly when no questions exist; errors are captured and surfaced in the report.
 
 ### 1.8 Market Context
-- [ ] Use `data_tools.fd_api.get_equity_snapshot` (or equivalent) to pull snapshots for key tickers from the scenario; include timestamps and sources.
+- [x] Use `data_tools.fd_api.get_equity_snapshot` (or equivalent) to pull snapshots for key tickers from the scenario; include timestamps and sources.
 - [ ] Aggregate market-wide/sector stats only if provided by the stub; otherwise, log unavailability gracefully.
 
 ### 1.9 Error Handling
@@ -60,19 +60,19 @@ Audience: implementation agent. Treat all referenced sub-agents as existing stub
 - [ ] Question schema: `{"question": str, "ticker": str optional, "intent_hint": str optional, "context": dict optional}` for ticker agent input.
 
 ### 2.2 Clean Day Scenario
-- [ ] Create `scenarios/clean_day.json` with multiple tickers/trades/marks, all valid, standard market conditions, no warnings expected.
+- [x] Create `scenarios/clean_day.json` with multiple tickers/trades/marks, all valid, standard market conditions, no warnings expected.
 
 ### 2.3 Bad Mark Scenario
-- [ ] Create `scenarios/bad_mark.json` where marks have high/low/stale deviations; expect pricing agent to flag OUT_OF_TOLERANCE/REVIEW_NEEDED.
+- [x] Create `scenarios/bad_mark.json` where marks have high/low/stale deviations; expect pricing agent to flag OUT_OF_TOLERANCE/REVIEW_NEEDED.
 
 ### 2.4 Wrong Ticker Mapping Scenario
-- [ ] Create `scenarios/wrong_ticker_mapping.json` with ambiguous/incorrect identifiers (e.g., "AAPL US", "AAPL.OQ", "XYZ123", deliberate ambiguity) to exercise normalization edges.
+- [x] Create `scenarios/wrong_ticker_mapping.json` with ambiguous/incorrect identifiers (e.g., "AAPL US", "AAPL.OQ", "XYZ123", deliberate ambiguity) to exercise normalization edges.
 
 ### 2.5 Mis-booked Trade Scenario
-- [ ] Create `scenarios/mis_booked_trade.json` covering wrong ticker, currency mismatch, price out of tolerance, wrong counterparty, missing fields, and settlement issues.
+- [x] Create `scenarios/mis_booked_trade.json` covering wrong ticker, currency mismatch, price out of tolerance, wrong counterparty, missing fields, and settlement issues.
 
 ### 2.6 High-Vol Day Scenario
-- [ ] Create `scenarios/high_vol_day.json` showing volatile market moves, multiple pricing flags, unusual trade prices, and context data reflecting volatility.
+- [x] Create `scenarios/high_vol_day.json` showing volatile market moves, multiple pricing flags, unusual trade prices, and context data reflecting volatility.
 
 ### 2.7 Scenario Validation
 - [ ] Add automated schema validation and a smoke execution for each scenario; fail fast with descriptive errors if any scenario is invalid.

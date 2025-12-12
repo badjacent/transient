@@ -5,12 +5,12 @@ Audience: implementation agent. Treat other modules as stubs (e.g., `desk_agent.
 - [x] Ensure `src/service/` exists with importable stubs: `__init__.py`, `api.py` (FastAPI endpoints), `main.py` (entrypoint), `config.py` (config loader).
 - [x] Ensure `tests/service/` exists with `__init__.py` and `test_api.py` placeholder.
 - [x] Ensure `docs/` exists with placeholders: `ARCHITECTURE.md`, `INSTALL.md`, `DEMO_SCRIPT.md`, `README.md` (or updated main README).
-- [ ] Ensure `logs/` directory exists (configurable path).
+- [x] Ensure `logs/` directory exists (configurable path).
 
 ## Task 1: FastAPI Wrapper
 
 ### 1.1 App Setup
-- [ ] Create FastAPI app in `src/service/api.py`; configure CORS if needed; add request/response models (Pydantic); include error-handling middleware; expose OpenAPI docs.
+- [x] Create FastAPI app in `src/service/api.py`; configure CORS if needed; add request/response models (Pydantic); include error-handling middleware; expose OpenAPI docs.
 
 ### 1.2 Health Endpoint
 - [x] Implement `GET /health` returning service status, version, dependency checks (API keys, data sources), and sub-agent uptimes if available.
@@ -21,7 +21,7 @@ Audience: implementation agent. Treat other modules as stubs (e.g., `desk_agent.
   - [x] Call `desk_agent.orchestrator` stub; handle errors gracefully; validate request; serialize response matching integrated report structure (data_quality, trade_issues, pricing_flags, market_context, narrative, execution_time_ms, timestamp).
 
 ### 1.4 Optional Endpoints
-- [ ] `GET /scenarios` (list), `GET /scenarios/{name}` (details), `POST /validate-trade`, `POST /validate-pricing`, `GET /status` for detailed service status.
+- [x] `GET /scenarios` (list), `GET /scenarios/{name}` (details), `POST /validate-trade`, `POST /validate-pricing`, `GET /status` for detailed service status.
 
 ### 1.5 Error Handling
 - [ ] Define custom exceptions and global handlers; map to HTTP codes (200, 400 validation, 404 scenario missing, 500 internal, 503 dependency down); include error details and logging.

@@ -4,7 +4,7 @@ Audience: implementation agent. Treat upstream data fetchers in `data_tools` as-
 ## Module Structure Setup
 - [x] Ensure `src/refmaster/` has importable stubs: `__init__.py`, `schema.py`, `normalizer_agent.py` (or adapt existing `refmaster.py`), and data loader (e.g., `refmaster_builder.py` or similar).
 - [x] Ensure `tests/refmaster/` exists with `__init__.py` and `test_refmaster.py` placeholder.
-- [ ] Ensure `data/seed_data.csv` exists for canonical symbols; if already present in `refmaster_data.json`, add loader/adapter to support both.
+- [x] Ensure `data/seed_data.csv` exists for canonical symbols; if already present in `refmaster_data.json`, add loader/adapter to support both.
 
 ## Task 1: Define Schemas (`src/refmaster/schema.py`)
 - [x] Define `Equity` (or equivalent) with required fields: `symbol`, `isin`, `cusip`, `currency`, `exchange`, `pricing_source`. Optional: `cik`, `name`, `country`, `sector`, `industry`.
@@ -12,7 +12,7 @@ Audience: implementation agent. Treat upstream data fetchers in `data_tools` as-
 - [x] Export schema objects so downstream modules (OMS/Pricing/Desk) import from `refmaster.schema`, not `data_tools`.
 
 ## Task 2: Seed Data
-- [ ] Populate `data/seed_data.csv` (30–50 equities) using `data_tools` fetchers; keep generation logic in `refmaster_builder.py` or similar, but allow reuse of `data_tools` utilities.
+- [x] Populate `data/seed_data.csv` (30–50 equities) using `data_tools` fetchers; keep generation logic in `refmaster_builder.py` or similar, but allow reuse of `data_tools` utilities.
 - [x] Provide loader to read CSV into schema objects; support fallback to `refmaster_data.json` if CSV missing.
 - [x] Document placeholder quality (e.g., synthetic ISIN/CUSIP if API keys absent).
 
@@ -45,9 +45,9 @@ Audience: implementation agent. Treat upstream data fetchers in `data_tools` as-
 - [x] Add a brief note (in README or existing `refmaster.md`) about synthetic identifiers when API keys are missing.
 
 ## Production Readiness
-- [ ] Logging: inputs, selected candidates, confidence scores, reasons; warn on ambiguity/unknown.
-- [ ] Configurability: thresholds and data paths via env/config defaults; avoid hard-coded paths.
-- [ ] Error handling: clear errors for missing data files, malformed rows, and missing fields; keep partial results where possible.
+- [x] Logging: inputs, selected candidates, confidence scores, reasons; warn on ambiguity/unknown.
+- [x] Configurability: thresholds and data paths via env/config defaults; avoid hard-coded paths.
+- [x] Error handling: clear errors for missing data files, malformed rows, and missing fields; keep partial results where possible.
 
 ## Optional Enhancements
 - [ ] Add name-based fuzzy matching (token sort ratio) behind a flag.

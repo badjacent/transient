@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import json
+import logging
+import os
 from typing import Any, Dict, List, Optional
 
 from src.oms.schema import Trade
@@ -12,6 +14,7 @@ from src.data_tools.fd_api import get_price_snapshot
 
 DEFAULT_THRESHOLDS = {"warning": 0.02, "error": 0.05}
 DEFAULT_COUNTERPARTIES = {"MS", "GS", "JPM", "BAML", "BARC", "CITI"}
+logger = logging.getLogger(__name__)
 
 
 def _issue(issue_type: str, severity: str, message: str, field: str) -> Dict[str, Any]:
@@ -26,10 +29,18 @@ class OMSAgent:
         normalizer: Optional[NormalizerAgent] = None,
         thresholds: Optional[Dict[str, float]] = None,
         valid_counterparties: Optional[set[str]] = None,
+        ref_currency_map: Optional[Dict[str, str]] = None,
     ) -> None:
         self.normalizer = normalizer or NormalizerAgent()
-        self.thresholds = {**DEFAULT_THRESHOLDS, **(thresholds or {})}
-        self.valid_counterparties = valid_counterparties or DEFAULT_COUNTERPARTIES
+        env_thresholds = {
+            "warning": float(os.getenv("OMS_PRICE_WARNING_THRESHOLD", DEFAULT_THRESHOLDS["warning"])),
+            "error": float(os.getenv("OMS_PRICE_ERROR_THRESHOLD", DEFAULT_THRESHOLDS["error"])),
+        }
+        self.thresholds = {**DEFAULT_THRESHOLDS, **env_thresholds, **(thresholds or {})}
+        env_counterparties = os.getenv("OMS_COUNTERPARTIES")
+        env_set = {c.strip().upper() for c in env_counterparties.split(",")} if env_counterparties else None
+        self.valid_counterparties = valid_counterparties or env_set or DEFAULT_COUNTERPARTIES
+        self.ref_currency_map = ref_currency_map or {}
 
     def run(self, trade_json: Any) -> Dict[str, Any]:
         trade = self._parse_trade(trade_json)
@@ -42,11 +53,19 @@ class OMSAgent:
         issues.extend(self._check_settlement(trade))
         status = self._status(issues)
         explanation = self._explain(status, issues)
+        logger.info("oms_agent status=%s issues=%d ticker=%s", status, len(issues), trade.ticker)
         return {"status": status, "issues": issues, "explanation": explanation}
 
     def _parse_trade(self, trade_json: Any) -> Trade:
         if isinstance(trade_json, str):
             trade_json = json.loads(trade_json)
+        # Accept data_tools.schemas.Trade instance
+        try:
+            from src.data_tools.schemas import Trade as DataTrade  # type: ignore
+        except Exception:
+            DataTrade = None
+        if DataTrade and isinstance(trade_json, DataTrade):
+            trade_json = trade_json.model_dump()
         if not isinstance(trade_json, dict):
             raise ValueError("trade_json must be dict or JSON string")
         return Trade(**trade_json)
@@ -77,9 +96,9 @@ class OMSAgent:
         return issues
 
     def _check_currency(self, trade: Trade) -> List[Dict[str, Any]]:
-        # Stub: assume USD reference; warn if not USD.
-        if trade.currency != "USD":
-            return [_issue("currency_mismatch", "WARNING", "Non-USD trade; reference currency unknown", "currency")]
+        ref_ccy = self.ref_currency_map.get(trade.ticker, "USD")
+        if trade.currency != ref_ccy:
+            return [_issue("currency_mismatch", "WARNING", f"Currency {trade.currency} vs ref {ref_ccy}", "currency")]
         return []
 
     def _check_price(self, trade: Trade) -> List[Dict[str, Any]]:
@@ -90,6 +109,7 @@ class OMSAgent:
             issues.append(_issue("price_tolerance", "WARNING", f"Market data unavailable: {exc}", "price"))
             return issues
         deviation_pct = abs(trade.price - snap.price) / snap.price if snap.price else 0
+        logger.info("price check ticker=%s trade_price=%s market=%s deviation_pct=%.4f", trade.ticker, trade.price, snap.price, deviation_pct)
         if deviation_pct > self.thresholds["error"]:
             issues.append(
                 _issue("price_tolerance", "ERROR", f"Price deviates {deviation_pct:.2%} from market", "price")
