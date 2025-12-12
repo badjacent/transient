@@ -2,26 +2,26 @@
 Audience: implementation agent. Treat all referenced sub-agents as existing stubs in their home modules (no internal modifications here). Paths are repo-root-relative.
 
 ## Module Structure Setup
-- [ ] Ensure `src/desk_agent/` exists with `__init__.py`, `orchestrator.py`, and `config.py`; files may start as stubs but must be importable.
+- [x] Ensure `src/desk_agent/` exists with `__init__.py`, `orchestrator.py`, and `config.py`; files may start as stubs but must be importable.
 - [ ] Ensure `tests/desk_agent/` exists with `__init__.py` and `test_orchestrator.py` placeholder.
-- [ ] Ensure project-root `scenarios/` and `logs/` directories exist; keep write path configurable via `config.py`.
+- [x] Ensure project-root `scenarios/` and `logs/` directories exist; keep write path configurable via `config.py`.
 - [ ] Create/update `examples/combined_report_example.json` as a template output produced by the orchestrator.
 
 ## Task 1: Build the Orchestrator
 
 ### 1.1 Orchestrator Class Structure
-- [ ] Implement `DeskAgentOrchestrator` in `src/desk_agent/orchestrator.py`, initialized with injected stubs: `refmaster.NormalizerAgent`, `oms.oms_agent.OMSAgent`, `pricing.pricing_agent.PricingAgent`, `ticker_agent.ticker_agent.run`, and `data_tools.fd_api` utilities.
-- [ ] Wire configuration loading through `config.py` (env > file > defaults) and set up logging (level, handlers, log path from config).
-- [ ] Expose constructor parameters for dependency overrides (for tests/mocks).
+- [x] Implement `DeskAgentOrchestrator` in `src/desk_agent/orchestrator.py`, initialized with injected stubs: `refmaster.NormalizerAgent`, `oms.oms_agent.OMSAgent`, `pricing.pricing_agent.PricingAgent`, `ticker_agent.ticker_agent.run`, and `data_tools.fd_api` utilities.
+- [x] Wire configuration loading through `config.py` (env > file > defaults) and set up logging (level, handlers, log path from config).
+- [x] Expose constructor parameters for dependency overrides (for tests/mocks).
 
 ### 1.2 Scenario Loading
-- [ ] Implement `load_scenario(name_or_path: str) -> dict` that reads from `scenarios/` (JSON or YAML), validates schema, and surfaces `FileNotFoundError` with a helpful message.
-- [ ] Accept already-loaded scenario dicts without reloading.
+- [x] Implement `load_scenario(name_or_path: str) -> dict` that reads from `scenarios/` (JSON or YAML), validates schema, and surfaces `FileNotFoundError` with a helpful message.
+- [x] Accept already-loaded scenario dicts without reloading.
 - [ ] Provide schema validation errors that list missing/invalid fields by path.
 
 ### 1.3 Workflow Execution
-- [ ] Implement `run_scenario(scenario: str | dict) -> dict` that executes the ordered workflow and returns the integrated report.
-- [ ] Execution order (enforce explicitly): load/accept scenario → validate schema → normalize tickers → trade QA → pricing validation → ticker questions → market context fetch → aggregate → narrative + stats.
+- [x] Implement `run_scenario(scenario: str | dict) -> dict` that executes the ordered workflow and returns the integrated report.
+- [x] Execution order (enforce explicitly): load/accept scenario → validate schema → normalize tickers → trade QA → pricing validation → ticker questions → market context fetch → aggregate → narrative + stats.
 - [ ] Capture per-step timings, inputs, outputs, and exceptions in a structured trace attached to the report.
 
 ### 1.4 Reference Master Integration

@@ -2,9 +2,9 @@
 Audience: implementation agent. Treat other modules as stubs (e.g., `desk_agent.orchestrator`). Paths are repo-root-relative.
 
 ## Module Structure Setup
-- [ ] Ensure `src/service/` exists with importable stubs: `__init__.py`, `api.py` (FastAPI endpoints), `main.py` (entrypoint), `config.py` (config loader).
-- [ ] Ensure `tests/service/` exists with `__init__.py` and `test_api.py` placeholder.
-- [ ] Ensure `docs/` exists with placeholders: `ARCHITECTURE.md`, `INSTALL.md`, `DEMO_SCRIPT.md`, `README.md` (or updated main README).
+- [x] Ensure `src/service/` exists with importable stubs: `__init__.py`, `api.py` (FastAPI endpoints), `main.py` (entrypoint), `config.py` (config loader).
+- [x] Ensure `tests/service/` exists with `__init__.py` and `test_api.py` placeholder.
+- [x] Ensure `docs/` exists with placeholders: `ARCHITECTURE.md`, `INSTALL.md`, `DEMO_SCRIPT.md`, `README.md` (or updated main README).
 - [ ] Ensure `logs/` directory exists (configurable path).
 
 ## Task 1: FastAPI Wrapper
@@ -13,12 +13,12 @@ Audience: implementation agent. Treat other modules as stubs (e.g., `desk_agent.
 - [ ] Create FastAPI app in `src/service/api.py`; configure CORS if needed; add request/response models (Pydantic); include error-handling middleware; expose OpenAPI docs.
 
 ### 1.2 Health Endpoint
-- [ ] Implement `GET /health` returning service status, version, dependency checks (API keys, data sources), and sub-agent uptimes if available.
+- [x] Implement `GET /health` returning service status, version, dependency checks (API keys, data sources), and sub-agent uptimes if available.
 
 ### 1.3 Main Desk Agent Endpoint
-- [ ] Implement `POST /run-desk-agent`:
-  - Request schema: `scenario` (str name), optional `data` (dict/custom scenario), optional `config_overrides` (dict).
-  - Call `desk_agent.orchestrator` stub; handle errors gracefully; validate request; serialize response matching integrated report structure (data_quality, trade_issues, pricing_flags, market_context, narrative, execution_time_ms, timestamp).
+- [x] Implement `POST /run-desk-agent`:
+  - [x] Request schema: `scenario` (str name), optional `data` (dict/custom scenario), optional `config_overrides` (dict).
+  - [x] Call `desk_agent.orchestrator` stub; handle errors gracefully; validate request; serialize response matching integrated report structure (data_quality, trade_issues, pricing_flags, market_context, narrative, execution_time_ms, timestamp).
 
 ### 1.4 Optional Endpoints
 - [ ] `GET /scenarios` (list), `GET /scenarios/{name}` (details), `POST /validate-trade`, `POST /validate-pricing`, `GET /status` for detailed service status.
