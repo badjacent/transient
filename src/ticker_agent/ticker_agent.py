@@ -10,8 +10,8 @@ from dotenv import load_dotenv
 
 from src.data_tools.fd_api import get_equity_snapshot
 from src.data_tools.schemas import EquitySnapshot
-from src.desk_agent import classifier
-from src.desk_agent.prompts import SYSTEM_PROMPT, TOOLS_PROMPT
+from src.ticker_agent import classifier
+from src.ticker_agent.prompts import SYSTEM_PROMPT, TOOLS_PROMPT
 
 load_dotenv()
 

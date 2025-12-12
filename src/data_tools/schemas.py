@@ -58,3 +58,15 @@ class Equity(BaseModel):
     currency: str
     exchange: str
     pricing_source: str
+
+
+class Trade(BaseModel):
+    """Trade record for equities, options, and simple credit (bond/CDS)."""
+
+    ticker: str
+    quantity: float
+    price: float
+    currency: str
+    counterparty: str
+    trade_dt: str = Field(..., description="Trade date in YYYY-MM-DD format")
+    settle_dt: str = Field(..., description="Settlement date in YYYY-MM-DD format")

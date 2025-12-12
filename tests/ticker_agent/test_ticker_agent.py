@@ -1,6 +1,6 @@
 import pytest
 
-from src.desk_agent import ticker_agent
+from src.ticker_agent import ticker_agent
 from src.data_tools.schemas import EquitySnapshot
 
 

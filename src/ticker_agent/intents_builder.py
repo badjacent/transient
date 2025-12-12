@@ -14,7 +14,7 @@ from typing import List
 import requests
 from dotenv import load_dotenv
 
-from src.desk_agent.intents_loader import IntentDef
+from src.ticker_agent.intents_loader import IntentDef
 
 load_dotenv()
 

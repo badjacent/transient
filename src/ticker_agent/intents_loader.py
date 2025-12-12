@@ -16,7 +16,7 @@ class IntentDef(TypedDict):
 
 def _default_intents_path() -> Path:
     """Resolve the default intents data file path."""
-    return Path(__file__).resolve().parents[2] / "src" / "desk_agent" / "intents_data.json"
+    return Path(__file__).resolve().parent / "intents_data.json"
 
 
 def load_intent_definitions(data_path: str | Path | None = None) -> List[IntentDef]:

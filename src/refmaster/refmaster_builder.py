@@ -1,19 +1,22 @@
-"""Builds refmaster_data.json from a hardcoded ticker list using SEC CIK and FMP identifiers when available."""
+"""Builds refmaster_data.json from a hardcoded ticker list using SEC CIK and LLM-enriched identifiers."""
 
 import json
 import hashlib
+import os
+from typing import Dict, List
 from pathlib import Path
 
-from src.data_tools.schemas import Equity
-from src.data_tools import fmp_api
-from src.data_tools.sec_cik import get_cik_for_ticker
 from dotenv import load_dotenv
+import requests
+
+from src.data_tools.schemas import Equity
+from src.data_tools.sec_cik import get_cik_for_ticker
 
 load_dotenv()
 
 
 TICKERS = [
-    "AAPL", "MSFT", "GOOGL", "AMZN", "NVDA", "META", "TSLA", "BRK.B", "JPM", "V",
+    "AAPL", "MSFT", "GOOG", "AMZN", "NVDA", "META", "TSLA", "BRK.B", "JPM", "V",
     "MA", "PG", "XOM", "CVX", "JNJ", "UNH", "HD", "BAC", "PFE", "KO",
     "PEP", "CSCO", "ADBE", "CRM", "NFLX", "INTC", "ORCL", "T", "VZ", "WMT",
     "COST", "DIS", "MCD", "NKE", "SBUX", "AMD", "AVGO", "TXN", "QCOM", "AMGN",
@@ -22,29 +25,22 @@ TICKERS = [
 
 
 def _to_equity(symbol: str) -> Equity:
-    """Create an Equity record, preferring FMP identifiers, fallback to placeholders."""
+    """Create an Equity record with SEC CIK (if available) and placeholder IDs."""
     try:
         cik = get_cik_for_ticker(symbol) or ""
     except Exception:
         cik = ""
-    try:
-        eq = fmp_api.get_security_identifiers(symbol)
-        if cik and (eq.isin or eq.cusip):
-            eq.cik = cik
-        _ensure_defaults(eq)
-        return eq
-    except Exception:
-        eq = Equity(
-            symbol=symbol,
-            isin="",
-            cusip="",
-            cik=cik,
-            currency="USD",
-            exchange="",
-            pricing_source="financialdatasets.ai",
-        )
-        _ensure_defaults(eq)
-        return eq
+    eq = Equity(
+        symbol=symbol,
+        isin="",
+        cusip="",
+        cik=cik,
+        currency="USD",
+        exchange="",
+        pricing_source="financialdatasets.ai",
+    )
+    _ensure_defaults(eq)
+    return eq
 
 
 def _deterministic_digits(symbol: str, length: int) -> str:
@@ -118,10 +114,74 @@ def _ensure_defaults(eq: Equity) -> None:
 def build(output_path: Path | str | None = None) -> Path:
     """Write the hardcoded tickers to refmaster_data.json with Equity schema."""
     path = Path(output_path) if output_path else Path(__file__).parent / "refmaster_data.json"
-    equities = [_to_equity(t) for t in TICKERS]
-    payload = {"equities": [eq.model_dump() for eq in equities]}
+    base_equities: Dict[str, Equity] = {t: _to_equity(t) for t in TICKERS}
+    enriched_equities = _enrich_with_llm(list(base_equities.values()))
+    final_equities = []
+    for sym, base in base_equities.items():
+        enriched = enriched_equities.get(sym, base)
+        # Only set CIK if we have at least one other identifier (to avoid overwriting blanks)
+        if (enriched.isin or enriched.cusip) and base.cik:
+            enriched.cik = base.cik
+        elif not enriched.cik:
+            enriched.cik = base.cik
+        _ensure_defaults(enriched)
+        final_equities.append(enriched)
+    payload = {"equities": [eq.model_dump() for eq in final_equities]}
     path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
     return path
+
+
+def _enrich_with_llm(equities: List[Equity]) -> Dict[str, Equity]:
+    """Call LLM once to fill identifiers; fallback to original on failure."""
+    model = os.getenv("LLM_MODEL") or os.getenv("OPENAI_MODEL")
+    api_key = os.getenv("LLM_API_KEY") or os.getenv("OPENAI_API_KEY")
+    endpoint = os.getenv("LLM_API_URL") or os.getenv("OPENAI_API_URL") or "https://api.openai.com/v1/chat/completions"
+    if not model or not api_key:
+        return {eq.symbol: eq for eq in equities}
+
+    tickers = [eq.symbol for eq in equities]
+    system_prompt = (
+        "You are a reference data assistant. For each US ticker provided, supply CUSIP, ISIN, exchange, and currency. "
+        "Return JSON: {\"equities\": [{\"symbol\": str, \"cusip\": str, \"isin\": str, "
+        "\"exchange\": str, \"currency\": str}]}."
+    )
+    user_prompt = "Tickers: " + ", ".join(tickers)
+    messages = [
+        {"role": "system", "content": system_prompt},
+        {"role": "user", "content": user_prompt},
+    ]
+    try:
+        resp = requests.post(
+            endpoint,
+            headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"},
+            json={"model": model, "messages": messages},
+            timeout=300,
+        )
+        resp.raise_for_status()
+        content = resp.json()["choices"][0]["message"]["content"]
+        data = json.loads(content)
+        items = data.get("equities", []) if isinstance(data, dict) else []
+        mapping: Dict[str, Equity] = {}
+        for item in items:
+            if not isinstance(item, dict):
+                continue
+            sym = item.get("symbol")
+            if not sym:
+                continue
+            eq = Equity(
+                symbol=sym,
+                isin=item.get("isin", "") or "",
+                cusip=item.get("cusip", "") or "",
+                cik="",  # handled separately
+                currency=item.get("currency", "USD") or "USD",
+                exchange=item.get("exchange", "") or _assign_exchange(sym),
+                pricing_source="llm",
+            )
+            _ensure_defaults(eq)
+            mapping[sym.upper()] = eq
+        return mapping
+    except Exception:
+        return {eq.symbol: eq for eq in equities}
 
 
 if __name__ == "__main__":

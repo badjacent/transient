@@ -9,7 +9,7 @@ from typing import List, Tuple
 import requests
 from dotenv import load_dotenv
 
-from src.desk_agent.intents_loader import IntentDef, load_intent_definitions
+from src.ticker_agent.intents_loader import IntentDef, load_intent_definitions
 
 
 load_dotenv()
@@ -49,8 +49,8 @@ def _call_llm_chat(messages: List[dict], model: str) -> str:
 
 def classify_question(
     question: str,
-    intents: List[IntentDef] | None = None,
     model: str,
+    intents: List[IntentDef] | None = None,
 ) -> Tuple[str, float, dict]:
     """
     Ask an LLM to pick the best intent for a question.
