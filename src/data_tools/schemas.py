@@ -1,6 +1,6 @@
 """Pydantic schemas for data tooling outputs."""
 
-from typing import Optional
+from typing import Dict, Optional
 
 from pydantic import BaseModel, Field
 
@@ -70,3 +70,72 @@ class Trade(BaseModel):
     counterparty: str
     trade_dt: str = Field(..., description="Trade date in YYYY-MM-DD format")
     settle_dt: str = Field(..., description="Settlement date in YYYY-MM-DD format")
+
+
+class IncomeStatement(BaseModel):
+    """Normalized income statement slice."""
+
+    ticker: str
+    period: str
+    fiscal_year: Optional[int] = None
+    fiscal_period: Optional[str] = None
+    total_revenue: Optional[float] = None
+    cost_of_revenue: Optional[float] = None
+    gross_profit: Optional[float] = None
+    operating_income: Optional[float] = None
+    net_income: Optional[float] = None
+    diluted_eps: Optional[float] = None
+    currency: Optional[str] = None
+    source: str = Field(default="financialdatasets.ai")
+    raw: Optional[Dict] = None
+
+
+class BalanceSheet(BaseModel):
+    """Normalized balance sheet slice for assessing financial health and risk."""
+
+    ticker: str
+    period: str
+    fiscal_year: Optional[int] = None
+    fiscal_period: Optional[str] = None
+    # Assets
+    total_assets: Optional[float] = None
+    current_assets: Optional[float] = None
+    cash_and_cash_equivalents: Optional[float] = None
+    # Liabilities
+    total_liabilities: Optional[float] = None
+    current_liabilities: Optional[float] = None
+    total_debt: Optional[float] = None
+    long_term_debt: Optional[float] = None
+    short_term_debt: Optional[float] = None
+    # Equity
+    total_equity: Optional[float] = None
+    shareholders_equity: Optional[float] = None
+    # Calculated risk metrics (can be computed from above)
+    current_ratio: Optional[float] = Field(None, description="Current assets / Current liabilities")
+    debt_to_equity: Optional[float] = Field(None, description="Total debt / Total equity")
+    working_capital: Optional[float] = Field(None, description="Current assets - Current liabilities")
+    currency: Optional[str] = None
+    source: str = Field(default="financialdatasets.ai")
+    raw: Optional[Dict] = None
+
+
+class CashFlowStatement(BaseModel):
+    """Normalized cash flow statement slice for assessing liquidity and cash generation."""
+
+    ticker: str
+    period: str
+    fiscal_year: Optional[int] = None
+    fiscal_period: Optional[str] = None
+    # Operating activities
+    operating_cash_flow: Optional[float] = None
+    # Investing activities
+    capital_expenditures: Optional[float] = None
+    investing_cash_flow: Optional[float] = None
+    # Financing activities
+    financing_cash_flow: Optional[float] = None
+    # Net change
+    net_change_in_cash: Optional[float] = None
+    free_cash_flow: Optional[float] = Field(None, description="Operating cash flow - Capital expenditures")
+    currency: Optional[str] = None
+    source: str = Field(default="financialdatasets.ai")
+    raw: Optional[Dict] = None

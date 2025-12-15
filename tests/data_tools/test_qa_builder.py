@@ -1,12 +1,19 @@
 """Tests for qa_builder module."""
 
 import os
+import warnings
+
 import pytest
 from dotenv import load_dotenv
+
 from src.data_tools.schemas import QAPair
 
 # Load environment variables
 load_dotenv()
+
+if not os.getenv("OPENAI_API_KEY"):
+    os.environ["OPENAI_API_KEY"] = "test-key"
+
 
 
 def test_qa_builder_extract_mda_smoke():
@@ -35,9 +42,9 @@ def test_qa_builder_extract_mda_smoke():
             f"Unexpected error type: {type(e).__name__}: {e}"
 
 
-def test_qa_builder_generate_qa_pairs_smoke():
-    """Smoke test: Verify generate_qa_pairs function signature and structure."""
-    from src.data_tools.qa_builder import generate_qa_pairs
+def test_qa_builder_generate_qa_smoke():
+    """Smoke test: Verify generate_qa function signature and structure."""
+    from src.data_tools.qa_builder import generate_qa
     
     # Check if OpenAI API key is available
     openai_key = os.getenv("OPENAI_API_KEY")
@@ -47,7 +54,7 @@ def test_qa_builder_generate_qa_pairs_smoke():
     # Test with a well-known ticker and year
     # This will actually call the API, so it may take time and cost money
     try:
-        result = generate_qa_pairs(
+        result = generate_qa(
             ticker="AAPL",
             year=2023,
             max_questions=5,  # Small number for smoke test
@@ -55,7 +62,7 @@ def test_qa_builder_generate_qa_pairs_smoke():
         )
         
         # Should return a list
-        assert isinstance(result, list), f"generate_qa_pairs should return a list, got {type(result)}"
+        assert isinstance(result, list), f"generate_qa should return a list, got {type(result)}"
         
         # If we got results, verify structure
         if result:
@@ -89,3 +96,59 @@ def test_flatten_dataset_rejects_bad_shape():
 
     with pytest.raises(ValueError, match="Unexpected dataset item shape"):
         _ = _flatten_dataset([123])
+
+
+def test_extract_qa_from_10k_raises_on_empty(monkeypatch, tmp_path):
+    """extract_qa_from_10k should raise when generator yields no data."""
+    from src.data_tools import qa_builder
+
+    monkeypatch.setattr(qa_builder, "generate_qa", lambda *a, **k: [])
+    with pytest.raises(RuntimeError, match="No Q&A pairs generated"):
+        qa_builder.extract_qa_from_10k("AAPL", 2023, tmp_path / "qa.jsonl")
+
+
+def test_extract_qa_from_file_raises_on_empty(monkeypatch, tmp_path):
+    """extract_qa_from_file should raise when generator yields no data."""
+    from src.data_tools import qa_builder
+
+    monkeypatch.setattr(qa_builder, "generate_qa_from_file", lambda *a, **k: [])
+    with pytest.raises(RuntimeError, match="No Q&A pairs generated"):
+        qa_builder.extract_qa_from_file("file:///example.htm", tmp_path / "qa.jsonl")
+
+
+def test_generate_qa_from_file_accepts_local_path(monkeypatch, tmp_path):
+    """Local HTML paths should convert to file:// URLs before generator call."""
+    from src.data_tools import qa_builder
+
+    html_path = tmp_path / "filing.htm"
+    html_path.write_text("<html></html>", encoding="utf-8")
+
+    captured = {}
+
+    class DummyGenerator:
+        def __init__(self, model, api_key):
+            captured["api_key"] = api_key
+
+        def generate_from_pdf(self, url, max_questions):
+            captured["url"] = url
+            captured["max_questions"] = max_questions
+            return [{"question": "q", "answer": "a"}]
+
+    monkeypatch.setenv("OPENAI_API_KEY", "test-key")
+    monkeypatch.setattr(qa_builder, "DatasetGenerator", DummyGenerator)
+
+    result = qa_builder.generate_qa_from_file(str(html_path), max_questions=5)
+    assert len(result) == 1
+    assert captured["api_key"] == "test-key"
+    assert captured["max_questions"] == 5
+    assert captured["url"].startswith("file:///")
+
+
+def test_generate_qa_from_file_missing_local_path(monkeypatch, tmp_path):
+    """Missing local files should raise FileNotFoundError before hitting generator."""
+    from src.data_tools import qa_builder
+
+    monkeypatch.setenv("OPENAI_API_KEY", "test-key")
+
+    with pytest.raises(FileNotFoundError):
+        qa_builder.generate_qa_from_file(str(tmp_path / "missing.htm"))

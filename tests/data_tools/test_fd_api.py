@@ -4,7 +4,11 @@ import os
 import pytest
 from datetime import date
 from dotenv import load_dotenv
-from src.data_tools.fd_api import get_company_facts, get_price_snapshot
+from src.data_tools.fd_api import (
+    get_company_facts,
+    get_income_statements,
+    get_price_snapshot,
+)
 from src.data_tools.schemas import EquitySnapshot, PriceSnapshot
 
 # Load environment variables
@@ -359,3 +363,14 @@ def test_get_price_snapshot_insufficient_data(monkeypatch):
     monkeypatch.setattr("src.data_tools.fd_api.requests.get", lambda *a, **k: DummyResponse())
     with pytest.raises(ValueError, match="Insufficient data"):
         get_price_snapshot("AAPL", date(2024, 6, 5))
+
+
+def test_get_income_statements_returns_recent_years(api_key):
+    """Fetch four annual income statements for NVDA using the FinancialDatasets endpoint."""
+    statements = get_income_statements("NVDA", years=4)
+    assert isinstance(statements, list)
+    assert 1 <= len(statements) <= 4
+
+    first = statements[0]
+    assert first.ticker == "NVDA"
+    assert isinstance(first.total_revenue, (float, int, type(None)))

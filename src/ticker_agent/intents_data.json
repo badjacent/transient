@@ -1,18 +1,18 @@
 {
   "intents": [
     {
-      "name": "financials_revenue_summary",
-      "description": "Summarize revenue over a recent multi-year period for a given ticker.",
-      "slots": ["ticker", "metric", "periods", "other"],
+      "name": "price_performance_summary",
+      "description": "Summarize recent price performance over short horizons (e.g., 1D/5D/1M/3M/YTD) for a ticker.",
+      "slots": ["ticker", "horizons", "as_of", "other"],
       "seeds": [
-        "Summarize the last 4 years of revenue for this ticker.",
-        "Show me the revenue trend over the past four fiscal years for the company mentioned.",
-        "How has revenue changed year over year for the last four years for this equity?"
+        "Summarize 1M, 3M, and YTD returns for this ticker.",
+        "Give me recent performance for the stock over the last month, quarter, and year to date.",
+        "How has this equity performed over the last week and year to date?"
       ]
     },
     {
       "name": "volatility_comparison_convertible",
-      "description": "Compare realized equity vol over a lookback window to implied vol at issuance of a convertible.",
+      "description": "Compare realized equity volatility over a lookback window to implied volatility at issuance of a convertible; allow placeholders when implied data is missing.",
       "slots": [
         "ticker",
         "lookback_window",
@@ -28,12 +28,14 @@
       ]
     },
     {
-      "name": "price_performance_summary",
-      "description": "Summarize recent price performance over short horizons (e.g., 1M/3M/YTD) for a ticker.",
-      "slots": ["ticker", "horizons", "as_of", "other"],
+      "name": "income_statement_summary",
+      "description": "Summaries of multi-year income-statement metrics (revenue, operating income, net income, EPS).",
+      "slots": ["ticker", "metrics", "periods", "other"],
       "seeds": [
-        "Summarize 1M, 3M, and YTD returns for this ticker.",
-        "Give me recent performance for the stock over the last month, quarter, and year to date."
+        "Summarize the last 4 years of revenue for NVDA.",
+        "Show revenue, operating income, and net income for the past four reporting years for this ticker.",
+        "Give me the income statement for the previous four fiscal years for the company.",
+        "List revenue and EPS for each of the past four years and note any growth or decline."
       ]
     },
     {
@@ -46,10 +48,24 @@
       ]
     },
     {
+      "name": "fundamentals_risk_summary",
+      "description": "Comprehensive analysis of company fundamentals and risk trends including revenue, profitability, liquidity, leverage, and cash flow metrics.",
+      "slots": ["ticker", "fundamentals", "risk", "trends", "liquidity", "leverage", "cash_flow", "other"],
+      "seeds": [
+        "Give me a quick explanation of TSLA's fundamentals and risk trends before my investor call in 10 min.",
+        "What are the key fundamentals and risk factors for this company?",
+        "Analyze the financial health and risk trends for this ticker.",
+        "Summarize fundamentals and risk indicators for this stock.",
+        "What are the main risk factors and fundamental trends I should know about?"
+      ]
+    },
+    {
       "name": "generic_unhandled",
       "description": "Fallback when no intent fits; preserve details in slots.other.",
       "slots": ["other"],
-      "seeds": ["Unmapped or ambiguous questions."]
+      "seeds": [
+        "Unmapped or ambiguous questions."
+      ]
     }
   ]
 }

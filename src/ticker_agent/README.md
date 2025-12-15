@@ -3,12 +3,7 @@
 Lightweight ticker Q&A helper that classifies a question, resolves a ticker, fetches a snapshot via `data_tools.fd_api.get_equity_snapshot`, and returns structured intent/summary/metrics. LLM classification is optional; heuristics are always available as fallback.
 
 ## Supported intents
-- `price_performance_summary`: price, 1D/5D returns.
-- `financials_revenue_summary`: price, market cap, sector/industry.
-- `dividend_overview`: placeholder fields (`dividend_yield`, `next_ex_date` = None).
-- `volatility_comparison_convertible`: uses 5D return as proxy.
-- `news_sentiment_stub`: placeholder sentiment/headline.
-- `generic_unhandled`: default when no pattern matches.
+See `src/ticker_agent/intents.md` for the current intent list, metrics schema, and templates.
 
 ## Usage
 ```python

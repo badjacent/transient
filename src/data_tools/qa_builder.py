@@ -1,12 +1,17 @@
-"""Extract Q&A pairs from 10-K filings using financial-datasets; surface errors instead of hiding them."""
+"""Extract Q&A pairs and structured fundamentals from 10-K filings."""
 
 import json
 import os
+import re
+from io import StringIO
 from pathlib import Path
 from typing import List, Optional
+
+import pandas as pd
 from dotenv import load_dotenv
-from financial_datasets.parser import FilingParser, FilingItem
 from financial_datasets.generator import DatasetGenerator
+from financial_datasets.parser import FilingItem, FilingParser
+
 from src.data_tools.schemas import QAPair
 
 # Load environment variables
@@ -43,6 +48,29 @@ def extract_full_10k(ticker: str, year: int) -> Optional[str]:
         return None
     except Exception as exc:
         raise RuntimeError(f"Failed to extract 10-K for {ticker} {year}") from exc
+
+
+def get_10k_items(ticker: str, year: int, item_names: Optional[List[str]] = None) -> List[str]:
+    """
+    Return the raw HTML items for a given 10-K.
+
+    Args:
+        ticker: Stock ticker.
+        year: Filing year.
+        item_names: Optional list of item identifiers to filter (defaults to full filing).
+
+    Returns:
+        List of HTML strings for the requested sections.
+    """
+    parser = FilingParser()
+    try:
+        return parser.get_10K_items(
+            ticker=ticker,
+            year=year,
+            item_names=item_names or []
+        )
+    except Exception as exc:
+        raise RuntimeError(f"Failed to fetch 10-K items for {ticker} {year}") from exc
 
 
 def _get_openai_api_key() -> str:
@@ -91,7 +119,90 @@ def _flatten_dataset(dataset) -> List[QAPair]:
     return qa_pairs
 
 
-def generate_qa_pairs(
+def _parse_numeric(value) -> Optional[float]:
+    """Convert textual cell values to floats."""
+    if value is None:
+        return None
+    if isinstance(value, (int, float)):
+        return float(value)
+    text = str(value).strip()
+    if not text or text in {"-", "—", "N/A"}:
+        return None
+    text = text.replace(",", "").replace("$", "")
+    if text.startswith("(") and text.endswith(")"):
+        text = f"-{text[1:-1]}"
+    try:
+        return float(text)
+    except ValueError:
+        return None
+
+
+YEAR_PATTERN = re.compile(r"(20\d{2})")
+
+
+def _extract_revenue_from_html(html: str, max_years: int = 4) -> List[dict]:
+    """Parse HTML tables for revenue rows and return [{year, value}]."""
+    try:
+        tables = pd.read_html(StringIO(html))
+    except ValueError:
+        return []
+
+    for table in tables:
+        if table.empty or table.shape[1] < 2:
+            continue
+        table = table.dropna(how="all", axis=1)
+        if table.empty or table.shape[1] < 2:
+            continue
+
+        first_col = table.columns[0]
+        for _, row in table.iterrows():
+            label = str(row.get(first_col, "")).lower()
+            if "revenue" not in label:
+                continue
+            if "total" not in label and "net" not in label and not label.startswith("revenue"):
+                continue
+
+            entries: List[dict] = []
+            for col in table.columns[1:]:
+                year_match = YEAR_PATTERN.search(str(col))
+                if not year_match:
+                    continue
+                value = _parse_numeric(row.get(col))
+                if value is None:
+                    continue
+                entries.append({"year": int(year_match.group(1)), "value": value})
+
+            if entries:
+                entries.sort(key=lambda item: item["year"], reverse=True)
+                return entries[:max_years]
+
+    return []
+
+
+def extract_revenue_history(
+    ticker: str,
+    year: int,
+    max_years: int = 4
+) -> List[dict]:
+    """
+    Extract a normalized revenue series from a 10-K filing.
+
+    Returns:
+        List of dicts [{"year": 2024, "value": ...}, ...] sorted by year desc.
+    """
+    items = get_10k_items(ticker=ticker, year=year, item_names=[])
+    if not items:
+        raise RuntimeError(f"No 10-K content available for {ticker} {year}")
+
+    for html in items:
+        entries = _extract_revenue_from_html(html, max_years=max_years)
+        if entries:
+            return entries
+
+    raise RuntimeError(f"Unable to locate revenue table for {ticker} {year}")
+
+
+def generate_qa(
     ticker: str,
     year: int,
     max_questions: int = 100,
@@ -146,7 +257,7 @@ def extract_qa_from_10k(
         ValueError: If OPENAI_API_KEY is not set and api_key is not provided
     """
     # Generate Q&A pairs directly from 10-K using DatasetGenerator
-    qa_pairs = generate_qa_pairs(
+    qa_pairs = generate_qa(
         ticker=ticker,
         year=year,
         max_questions=max_questions,
@@ -156,8 +267,7 @@ def extract_qa_from_10k(
     )
     
     if not qa_pairs:
-        print(f"No Q&A pairs generated for {ticker} {year}")
-        return 0
+        raise RuntimeError(f"No Q&A pairs generated for {ticker} {year}; check filings or generator output.")
     
     # Write to JSONL file
     output_path = Path(output_file)
@@ -172,7 +282,7 @@ def extract_qa_from_10k(
     return len(qa_pairs)
 
 
-def generate_qa_pairs_from_file(
+def generate_qa_from_file(
     file_url: str,
     max_questions: int = 100,
     model: str = "gpt-4-turbo",
@@ -184,18 +294,20 @@ def generate_qa_pairs_from_file(
     openai_key = api_key or _get_openai_api_key()
     
     parsed = urlparse(file_url)
-    if parsed.scheme == 'file' or (not parsed.scheme and Path(file_url).exists()):
-        if parsed.scheme == 'file':
-            file_path = parsed.path
-            if os.name == 'nt' and file_path.startswith('/') and len(file_path) > 3 and file_path[2] == ':':
-                file_path = file_path[1:]
-        else:
-            file_path = file_url
+    local_path: Optional[str] = None
+    if parsed.scheme == 'file':
+        local_path = parsed.path
+        if os.name == 'nt' and local_path.startswith('/') and len(local_path) > 3 and local_path[2] == ':':
+            local_path = local_path[1:]
+    elif not parsed.scheme:
+        local_path = file_url
+    
+    if local_path is not None:
+        path_obj = Path(local_path)
+        if not path_obj.exists():
+            raise FileNotFoundError(f"HTML file not found: {path_obj}")
         
-        if not Path(file_path).exists():
-            raise FileNotFoundError(f"HTML file not found: {file_path}")
-        
-        abs_path = str(Path(file_path).absolute())
+        abs_path = str(path_obj.absolute())
         file_url = f"file://{abs_path}" if not abs_path.startswith('/') else f"file:///{abs_path}"
     
     generator = DatasetGenerator(
@@ -244,7 +356,7 @@ def extract_qa_from_file(
         FileNotFoundError: If local file path doesn't exist
     """
     # Generate Q&A pairs from HTML file
-    qa_pairs = generate_qa_pairs_from_file(
+    qa_pairs = generate_qa_from_file(
         file_url=file_url,
         max_questions=max_questions,
         model=model,
@@ -252,8 +364,7 @@ def extract_qa_from_file(
     )
     
     if not qa_pairs:
-        print(f"No Q&A pairs generated from file: {file_url}")
-        return 0
+        raise RuntimeError(f"No Q&A pairs generated from file: {file_url}")
     
     # Write to JSONL file
     output_path = Path(output_file)
