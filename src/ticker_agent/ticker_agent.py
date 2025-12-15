@@ -4,7 +4,8 @@ from __future__ import annotations
 
 import os
 import re
-from typing import Any, Dict, Optional, Tuple
+from functools import lru_cache
+from typing import Any, Dict, Optional, Tuple, List
 
 from dotenv import load_dotenv
 
@@ -22,10 +23,17 @@ def _get_llm_model() -> Optional[str]:
 
 
 def _extract_ticker(question: str) -> Optional[str]:
-    """Heuristic ticker extraction: first 1-5 letter uppercase token."""
+    """Heuristic ticker extraction with support for suffixes (AAPL US, AAPL.OQ)."""
     if not question:
         return None
-    match = re.search(r"\b([A-Z]{1,5})\b", question)
+    text = question.strip().upper()
+    # Handle space-separated country/exchange
+    parts = text.split()
+    if parts:
+        primary = parts[0]
+        if re.match(r"^[A-Z]{1,5}(\.[A-Z]{1,3})?$", primary):
+            return primary.split(".")[0]
+    match = re.search(r"\b([A-Z]{1,5})\b", text)
     return match.group(1) if match else None
 
 
@@ -51,6 +59,8 @@ def _classify_intent(question: str) -> Tuple[str, Dict[str, Any]]:
         return "price_performance_summary", {"ticker": ticker}
     if any(k in q for k in ["vol", "risk"]):
         return "volatility_comparison_convertible", {"ticker": ticker}
+    if any(k in q for k in ["news", "headline", "sentiment"]):
+        return "news_sentiment_stub", {"ticker": ticker}
     if any(k in q for k in ["revenue", "fundamentals", "market cap", "sector"]):
         return "financials_revenue_summary", {"ticker": ticker}
     return "generic_unhandled", {"ticker": ticker}
@@ -71,6 +81,8 @@ def _build_metrics(intent: str, snap: EquitySnapshot) -> Dict[str, Any]:
         base.update({"dividend_yield": None, "next_ex_date": None})
     elif intent == "volatility_comparison_convertible":
         base.update({"return_5d": snap.return_5d})
+    elif intent == "news_sentiment_stub":
+        base.update({"sentiment": None, "headline_sample": None})
     return base
 
 
@@ -92,6 +104,8 @@ def _summary(intent: str, snap: EquitySnapshot, metrics: Dict[str, Any]) -> str:
             f"{snap.ticker} recent 5D return multiplier {snap.return_5d:.2f}; "
             "use as proxy until convertible vol data is available."
         )
+    if intent == "news_sentiment_stub":
+        return f"{snap.ticker} news sentiment not available from current source; consider enabling LLM/news feed."
     return f"{snap.ticker} snapshot at ${snap.price:.2f}."
 
 
@@ -104,6 +118,11 @@ def _error_response(reason: str, detail: str = "") -> Dict[str, Any]:
     }
 
 
+@lru_cache(maxsize=64)
+def _cached_snapshot(ticker: str) -> EquitySnapshot:
+    return get_equity_snapshot(ticker)
+
+
 def run(question: str) -> Dict[str, Any]:
     """Answer a question about a ticker using desk data tools."""
     intent, meta = _classify_intent(question)
@@ -111,7 +130,7 @@ def run(question: str) -> Dict[str, Any]:
     if not resolved_ticker:
         return _error_response("invalid_ticker", "Provide a ticker in the question.")
     try:
-        snap = get_equity_snapshot(resolved_ticker)
+        snap = _cached_snapshot(resolved_ticker)
     except Exception as exc:
         return _error_response("data_unavailable", str(exc))
     
@@ -125,3 +144,11 @@ def run(question: str) -> Dict[str, Any]:
         "system_prompt": SYSTEM_PROMPT,
         "tools_prompt": TOOLS_PROMPT,
     }
+
+
+def run_many(questions: List[str]) -> List[Dict[str, Any]]:
+    """Batch process questions, reusing cached snapshots where possible."""
+    results: List[Dict[str, Any]] = []
+    for q in questions:
+        results.append(run(q))
+    return results

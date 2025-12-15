@@ -1,54 +1,103 @@
 import json
+from pathlib import Path
 
 import pytest
 
+from src.data_tools.schemas import Trade as DataTrade
 from src.oms.oms_agent import OMSAgent
-from src.oms.schema import Trade
+from src.refmaster.schema import Equity, NormalizationResult
 
 
-def test_parse_and_missing_fields():
-    agent = OMSAgent()
-    res = agent.run({"ticker": "", "quantity": 100, "price": 10, "currency": "USD", "counterparty": "MS", "trade_dt": "2024-06-05", "settle_dt": "2024-06-07"})
-    assert any(i["type"] == "missing_field" for i in res["issues"])
+class DummySnap:
+    def __init__(self, price: float) -> None:
+        self.price = price
+        self.ticker = "TEST"
+        self.date = "2024-06-05"
+        self.source = "test"
 
 
-def test_identifier_error(monkeypatch):
-    agent = OMSAgent()
-    monkeypatch.setattr(agent.normalizer, "normalize", lambda t, top_k=3: [])
-    res = agent.run({"ticker": "ZZZZ", "quantity": 100, "price": 10, "currency": "USD", "counterparty": "MS", "trade_dt": "2024-06-05", "settle_dt": "2024-06-07"})
+class NormalizerStub:
+    def __init__(self, resolver) -> None:
+        self._resolver = resolver
+
+    def normalize(self, ticker: str, top_k: int = 3):
+        return self._resolver(ticker)
+
+
+def equity(symbol: str) -> Equity:
+    return Equity(symbol=symbol, isin=f"US{symbol:0<9}0"[:12], cusip=f"{symbol:0<9}", currency="USD", exchange="NYSE", pricing_source="TEST")
+
+
+def test_status_rules_collect_all(monkeypatch):
+    agent = OMSAgent(normalizer=NormalizerStub(lambda t: []))
+    monkeypatch.setattr("src.oms.oms_agent.get_price_snapshot", lambda t, d: DummySnap(120))
+    res = agent.run({"ticker": "BAD", "quantity": 100, "price": 200, "currency": "USD", "counterparty": "UNKNOWN", "trade_dt": "2024-06-05", "settle_dt": "2024-06-04"})
+    error_types = {i["type"] for i in res["issues"] if i["severity"] == "ERROR"}
+    warning_types = {i["type"] for i in res["issues"] if i["severity"] == "WARNING"}
     assert res["status"] == "ERROR"
-    assert any(i["type"] == "identifier_mismatch" for i in res["issues"])
+    assert "identifier_mismatch" in error_types
+    assert "settlement_date" in error_types
+    assert "price_tolerance" in warning_types or "counterparty" in warning_types
 
 
-def test_price_tolerance(monkeypatch):
-    agent = OMSAgent(thresholds={"warning": 0.02, "error": 0.05})
-
-    class DummySnap:
-        def __init__(self, price):
-            self.price = price
-            self.ticker = "AAPL"
-            self.date = "2024-06-05"
-            self.source = "test"
-
+def test_schema_validation_surfaces(monkeypatch):
+    agent = OMSAgent()
     monkeypatch.setattr("src.oms.oms_agent.get_price_snapshot", lambda t, d: DummySnap(100))
-    res = agent.run({"ticker": "AAPL", "quantity": 100, "price": 120, "currency": "USD", "counterparty": "MS", "trade_dt": "2024-06-05", "settle_dt": "2024-06-07"})
-    assert any(i["type"] == "price_tolerance" for i in res["issues"])
+    res = agent.run({"ticker": "AAPL", "quantity": -1, "price": 0, "currency": "US", "counterparty": "MS", "trade_dt": "bad-date", "settle_dt": "2024-06-07"})
+    assert res["status"] == "ERROR"
+    assert any(i["type"] == "schema_validation" for i in res["issues"])
 
 
-def test_counterparty_warning():
-    agent = OMSAgent(valid_counterparties={"OK"})
-    res = agent.run({"ticker": "AAPL", "quantity": 100, "price": 100, "currency": "USD", "counterparty": "BAD", "trade_dt": "2024-06-05", "settle_dt": "2024-06-07"})
-    assert any(i["type"] == "counterparty" for i in res["issues"])
+def test_data_tools_trade_compatibility(monkeypatch):
+    agent = OMSAgent(normalizer=NormalizerStub(lambda t: [NormalizationResult(equity=equity(t), confidence=0.99, reasons=[])]))
+    monkeypatch.setattr("src.oms.oms_agent.get_price_snapshot", lambda t, d: DummySnap(190))
+    trade = DataTrade(ticker="AAPL", quantity=100, price=190, currency="USD", counterparty="MS", trade_dt="2024-06-05", settle_dt="2024-06-07")
+    res = agent.run(trade)
+    assert res["status"] == "OK"
+    assert not res["issues"]
 
 
-def test_settlement_before_trade():
-    agent = OMSAgent()
-    res = agent.run({"ticker": "AAPL", "quantity": 100, "price": 100, "currency": "USD", "counterparty": "MS", "trade_dt": "2024-06-05", "settle_dt": "2024-06-04"})
-    assert any(i["type"] == "settlement_date" for i in res["issues"])
+@pytest.mark.parametrize("scenario_file", [Path("scenarios/scenarios.json")])
+def test_scenarios(monkeypatch, scenario_file):
+    scenarios = json.loads(scenario_file.read_text())
+    # Shared stubs for per-scenario execution
+    def normalizer_for(name: str):
+        def _normalize(ticker: str, top_k: int = 3):
+            if name in {"invalid_ticker"}:
+                return []
+            if name == "ambiguous_ticker":
+                return [NormalizationResult(equity=equity(ticker), confidence=0.91, reasons=["symbol_exact"], ambiguous=True)]
+            if name == "identifier_low_confidence":
+                return [NormalizationResult(equity=equity(ticker), confidence=0.5, reasons=["symbol_in_text"], ambiguous=False)]
+            return [NormalizationResult(equity=equity(ticker), confidence=0.99, reasons=["symbol_exact"], ambiguous=False)]
+        return _normalize
 
+    for scenario in scenarios:
+        name = scenario["name"]
+        trade = scenario["trade"]
+        # Price baseline per scenario
+        if name in {"price_out_of_tolerance", "price_warning", "price_below_error"}:
+            market_price = 100.0
+        else:
+            market_price = trade.get("price", 100.0)
 
-def test_json_input():
-    agent = OMSAgent()
-    payload = json.dumps({"ticker": "AAPL", "quantity": 100, "price": 100, "currency": "USD", "counterparty": "MS", "trade_dt": "2024-06-05", "settle_dt": "2024-06-07"})
-    res = agent.run(payload)
-    assert res["status"] in {"OK", "WARNING", "ERROR"}
+        if name == "market_data_unavailable":
+            monkeypatch.setattr("src.oms.oms_agent.get_price_snapshot", lambda t, d: (_ for _ in ()).throw(RuntimeError("API down")))
+        else:
+            monkeypatch.setattr("src.oms.oms_agent.get_price_snapshot", lambda t, d, p=market_price: DummySnap(p))
+
+        agent = OMSAgent(
+            normalizer=NormalizerStub(normalizer_for(name)),
+            ref_currency_map={"AAPL": "USD", "MSFT": "USD", "SAP": "EUR"},
+        )
+        res = agent.run(trade)
+        expected_status = scenario["expected_status"]
+        expected_issues = scenario["expected_issues"]
+        assert res["status"] == expected_status, f"{name} expected {expected_status} got {res['status']} ({res['issues']})"
+        for expected in expected_issues:
+            matches = [
+                i
+                for i in res["issues"]
+                if i["type"] == expected["type"] and i["severity"] == expected["severity"]
+            ]
+            assert matches, f"{name} missing expected issue {expected}"

@@ -52,7 +52,7 @@ Audience: implementation agent. Treat external dependencies as stubs (e.g., `ref
     "explanation": "Human-readable summary"
   }
   ```
-- [ ] Overall status rules: ERROR if any ERROR issues; WARNING if no ERROR but at least one WARNING; else OK. Collect all issues (no early exit).
+- [x] Overall status rules: ERROR if any ERROR issues; WARNING if no ERROR but at least one WARNING; else OK. Collect all issues (no early exit).
 
 ### 3.3 Initialization
 - [x] Initialize refmaster normalizer stub; load config (price tolerances, counterparties, settlement rules, API keys/paths).
@@ -68,38 +68,38 @@ Audience: implementation agent. Treat external dependencies as stubs (e.g., `ref
   {"name": "...", "trade": {...}, "expected_status": "OK|WARNING|ERROR", "expected_issues": [{"type": "...", "severity": "...", "field": "..."}], "description": "..."}
   ```
 
-- [ ] Valid trades (3–5): normal equity, valid multi-currency if allowed, standard settlement.
-- [ ] Missing fields (3–4): missing ticker/quantity/price/currency/counterparty/dates.
-- [ ] Identifier mismatches (2–3): invalid ticker, ambiguous ticker, format issues.
-- [ ] Currency mismatches (2): wrong currency vs ref, bad currency code format.
-- [ ] Price tolerance (3–4): >5% high/low, 2–5% high/low, stale price data.
-- [ ] Counterparty issues (1–2): invalid format, suspicious name.
-- [ ] Settlement issues (2–3): settle before trade, non-standard T+1/T+3, weekend/holiday settle.
+- [x] Valid trades (3–5): normal equity, valid multi-currency if allowed, standard settlement.
+- [x] Missing fields (3–4): missing ticker/quantity/price/currency/counterparty/dates.
+- [x] Identifier mismatches (2–3): invalid ticker, ambiguous ticker, format issues.
+- [x] Currency mismatches (2): wrong currency vs ref, bad currency code format.
+- [x] Price tolerance (3–4): >5% high/low, 2–5% high/low, stale price data.
+- [x] Counterparty issues (1–2): invalid format, suspicious name.
+- [x] Settlement issues (2–3): settle before trade, non-standard T+1/T+3, weekend/holiday settle.
 
 ## Testing
-- [ ] Unit: each QA check individually.
-- [ ] Integration: `OMSAgent.run` with valid trades, each error type, multiple errors in one trade, edge cases (missing data, API failures).
-- [ ] Scenario-driven: run all `scenarios.json` cases and assert expected status/issues.
-- [ ] Error handling: market data API failures, missing ref data, invalid JSON input, network timeouts.
-- [ ] Performance: batch of trades completes in <30s.
+- [x] Unit: each QA check individually.
+- [x] Integration: `OMSAgent.run` with valid trades, each error type, multiple errors in one trade, edge cases (missing data, API failures).
+- [x] Scenario-driven: run all `scenarios.json` cases and assert expected status/issues.
+- [x] Error handling: market data API failures, missing ref data, invalid JSON input, network timeouts.
+- [x] Performance: batch of trades completes in <30s.
 
 ## Documentation
 - [x] `src/oms/README.md`: OMS agent overview, usage examples, config options, response format, integration guide.
-- [ ] Document QA checks and thresholds; provide example trade JSON inputs/outputs; document error codes/messages.
+- [x] Document QA checks and thresholds; provide example trade JSON inputs/outputs; document error codes/messages.
 
 ## Integration Points
 - [x] Refmaster: ticker normalization, ambiguous handling, confidence usage (stub).
 - [x] FD API: price fetch (`get_price_snapshot`/`get_equity_snapshot` stub), handle API errors, optional caching.
-- [ ] data_tools.schemas.Trade: ensure compatibility or map to OMS schema; handle Pydantic validation errors.
+- [x] data_tools.schemas.Trade: ensure compatibility or map to OMS schema; handle Pydantic validation errors.
 
 ## Production Readiness
-- [ ] Logging: validation results, API calls, errors/warnings.
-- [ ] Metrics/telemetry (optional): validation time, error rates by type, API call success rates.
-- [ ] Config support: price tolerances, counterparties, settlement rules, API endpoints/keys.
-- [ ] Audit trail: log all validated trades, store validation results, timestamp validations.
+- [x] Logging: validation results, API calls, errors/warnings.
+- [x] Metrics/telemetry (optional): validation time, error rates by type, API call success rates.
+- [x] Config support: price tolerances, counterparties, settlement rules, API endpoints/keys.
+- [x] Audit trail: log all validated trades, store validation results, timestamp validations.
 
 ## Evaluation Criteria
-- [ ] Catch 80%+ of scripted scenario errors; explanations are clear/actionable; structured output consistent; performs batch validation <30s; works on real-world-like trades if available.
+- [x] Catch 80%+ of scripted scenario errors; explanations are clear/actionable; structured output consistent; performs batch validation <30s; works on real-world-like trades if available.
 
 ## Optional Enhancements
 - [ ] Extend schema for options and bond/CDS; multi-currency with FX checks; historical price validation using `trade_dt`; external counterparty validation; batch validation endpoint; webhook for real-time validation; dashboard/UI for results.

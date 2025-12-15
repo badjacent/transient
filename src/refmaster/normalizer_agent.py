@@ -9,7 +9,7 @@ import os
 import re
 from functools import lru_cache
 from pathlib import Path
-from typing import Iterable, List, Optional
+from typing import Iterable, List, Optional, Dict
 
 from src.refmaster.schema import Equity, NormalizationResult
 
@@ -183,3 +183,29 @@ def resolve_ticker(symbol: str) -> Optional[Equity]:
         if eq.symbol.upper() == symbol:
             return eq
     return None
+
+
+def batch_normalize(inputs: List[str], top_k: int = 5) -> Dict[str, List[NormalizationResult]]:
+    """Normalize a list of identifier strings."""
+    agent = NormalizerAgent()
+    return {inp: agent.normalize(inp, top_k=top_k) for inp in inputs}
+
+
+def export_equities(path: str, fmt: str = "csv") -> Path:
+    """Export the loaded equities to CSV or JSON for audit."""
+    equities = [eq.model_dump() for eq in NormalizerAgent().equities]
+    out_path = Path(path)
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    if fmt.lower() == "json":
+        out_path.write_text(json.dumps(equities, indent=2), encoding="utf-8")
+        return out_path
+    # default CSV
+    import csv
+
+    fieldnames = list(equities[0].keys()) if equities else []
+    with out_path.open("w", encoding="utf-8", newline="") as f:
+        writer = csv.DictWriter(f, fieldnames=fieldnames)
+        writer.writeheader()
+        for row in equities:
+            writer.writerow(row)
+    return out_path

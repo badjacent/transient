@@ -52,6 +52,6 @@ Audience: implementation agent. Treat upstream data fetchers in `data_tools` as-
 ## Optional Enhancements
 - [ ] Add name-based fuzzy matching (token sort ratio) behind a flag.
 - [ ] Add per-country/exchange weighting.
-- [ ] Add batch normalize API.
-- [ ] Add CLI: `python -m src.refmaster.normalize "AAPL US"`.
-- [ ] Add export of normalized table for auditing (CSV/JSON).
+- [x] Add batch normalize API.
+- [x] Add CLI: `python -m src.refmaster.normalize "AAPL US"`.
+- [x] Add export of normalized table for auditing (CSV/JSON).

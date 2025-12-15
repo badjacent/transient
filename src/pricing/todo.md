@@ -91,9 +91,9 @@ Audience: implementation agent. Treat all external modules as stubs (e.g., `data
 - [x] Audit trail: log inputs, market data fetched, classifications, explanations, timestamps; optional persistence to file/db.
 
 ## Evaluation Criteria
-- [ ] Functionality: processes all marks in `data/marks.csv`, classifies correctly, generates actionable explanations, and produces an audit-friendly report.
-- [ ] Quality: concise explanations, professional report formatting, flexible config, clear errors.
-- [ ] Performance: completes 50 marks in reasonable time (<30s), respects rate limits, efficient memory use.
+- [x] Functionality: processes all marks in `data/marks.csv`, classifies correctly, generates actionable explanations, and produces an audit-friendly report.
+- [x] Quality: concise explanations, professional report formatting, flexible config, clear errors.
+- [x] Performance: completes 50 marks in reasonable time (<30s), respects rate limits, efficient memory use.
 
 ## Optional Enhancements
 - [ ] Advanced: options/bond/CDS validation; multi-currency with FX checks; historical trend analysis; automated mark update suggestions; portfolio system integration.

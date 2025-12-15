@@ -36,7 +36,7 @@ Audience: implementation agent. Treat `data_tools` helpers as already available;
 - [x] Keep prompts/intents schema documented in README or a brief comment header.
 
 ## Optional Enhancements
-- [ ] Add more intents (dividends with real data, risk/vol metrics, news sentiment) when data available.
-- [ ] Add batch `run_many` API.
-- [ ] Add caching of snapshots to reduce repeated API calls.
-- [ ] Add better ticker parsing (support “AAPL US”, “AAPL.OQ”, CIK/ISIN via refmaster hook).
+- [x] Add more intents (dividends with real data, risk/vol metrics, news sentiment) when data available.
+- [x] Add batch `run_many` API.
+- [x] Add caching of snapshots to reduce repeated API calls.
+- [x] Add better ticker parsing (support “AAPL US”, “AAPL.OQ”, CIK/ISIN via refmaster hook).

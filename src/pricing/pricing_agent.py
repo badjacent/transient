@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import logging
 from pathlib import Path
 from typing import Any, Dict, List
 import os
@@ -25,6 +26,7 @@ class PricingAgent:
         setup_logger()
         self.normalizer = normalizer or MarketNormalizer()
         self.logger = logging.getLogger(__name__)
+        self.perf_budget_ms = self.normalizer.tolerances.get("perf_budget_ms", 30000)
 
     def _load_marks(self, marks_input) -> List[Dict[str, Any]]:
         if isinstance(marks_input, list):
@@ -61,7 +63,27 @@ class PricingAgent:
         self._write_metrics(enriched_dicts, summary, duration_ms)
         return {
             "enriched_marks": enriched_dicts,
-            "summary": summary,
+            "summary": {**summary, "duration_ms": duration_ms, "within_budget": duration_ms <= self.perf_budget_ms},
+        }
+
+    def evaluate_dataset(self, marks_path: str | Path) -> Dict[str, Any]:
+        """Evaluate processing of a dataset: classifications/explanations present and perf budget met."""
+        start = time.perf_counter()
+        report = self.run(marks_path)
+        duration_ms = (time.perf_counter() - start) * 1000
+        enriched = report["enriched_marks"]
+        missing_explanations = [m["ticker"] for m in enriched if not m.get("explanation")]
+        missing_classifications = [m["ticker"] for m in enriched if not m.get("classification")]
+        pass_rate = 1.0 if not missing_explanations and not missing_classifications else (
+            1 - (len(missing_explanations) + len(missing_classifications)) / max(len(enriched), 1)
+        )
+        return {
+            "duration_ms": duration_ms,
+            "within_budget": duration_ms <= self.perf_budget_ms,
+            "missing_explanations": missing_explanations,
+            "missing_classifications": missing_classifications,
+            "pass_rate": pass_rate,
+            "summary": report["summary"],
         }
 
     def _aggregate(self, marks: List[EnrichedMark]) -> Dict[str, Any]:

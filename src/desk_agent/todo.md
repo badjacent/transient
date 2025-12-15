@@ -26,7 +26,7 @@ Audience: implementation agent. Treat all referenced sub-agents as existing stub
 
 ### 1.4 Reference Master Integration
 - [x] Call `refmaster.NormalizerAgent` stub to normalize all identifiers in scenario trades/marks/questions; propagate confidence scores and ambiguity flags.
-- [ ] Surface normalization failures without stopping the workflow; include them in `data_quality`.
+- [x] Surface normalization failures without stopping the workflow; include them in `data_quality`.
 - [x] Log normalization inputs, resolved identifiers, and confidence.
 
 ### 1.5 Trade QA Integration
@@ -44,20 +44,20 @@ Audience: implementation agent. Treat all referenced sub-agents as existing stub
 
 ### 1.8 Market Context
 - [x] Use `data_tools.fd_api.get_equity_snapshot` (or equivalent) to pull snapshots for key tickers from the scenario; include timestamps and sources.
-- [ ] Aggregate market-wide/sector stats only if provided by the stub; otherwise, log unavailability gracefully.
+- [x] Aggregate market-wide/sector stats only if provided by the stub; otherwise, log unavailability gracefully.
 
 ### 1.9 Error Handling
-- [ ] Implement per-step try/catch that records failures, keeps prior results, and proceeds unless configuration says otherwise.
-- [ ] Add retry policy hooks (config-driven) for external calls; load via `.env` (using `load_dotenv()`): `DESK_AGENT_MAX_RETRIES`, `DESK_AGENT_BACKOFF_MS`, `DESK_AGENT_ABORT_AFTER_RETRY` (bool-ish). Defaults if unset: 2 retries, 500ms backoff, abort on 3rd failure with partial results captured.
-- [ ] Detect missing dependencies early with a clear import/setup error.
+- [x] Implement per-step try/catch that records failures, keeps prior results, and proceeds unless configuration says otherwise.
+- [x] Add retry policy hooks (config-driven) for external calls; load via `.env` (using `load_dotenv()`): `DESK_AGENT_MAX_RETRIES`, `DESK_AGENT_BACKOFF_MS`, `DESK_AGENT_ABORT_AFTER_RETRY` (bool-ish). Defaults if unset: 2 retries, 500ms backoff, abort on 3rd failure with partial results captured.
+- [x] Detect missing dependencies early with a clear import/setup error.
 
 ## Task 2: Define 5 Scenarios
 
 ### 2.1 Scenario Schema
-- [ ] Define schema in code (used by validator): `{"name": str, "description": str, "trades": list, "marks": list, "questions": list, "metadata": dict}`.
-- [ ] Trade schema (align to OMS week spec): `{"trade_id": str, "ticker": str, "quantity": number, "price": number, "currency": str, "counterparty": str, "trade_dt": str (ISO), "settle_dt": str (ISO), "side": "BUY"|"SELL" optional notes}`.
-- [ ] Mark schema (align to pricing week spec): `{"ticker": str, "internal_mark": number, "as_of": str (ISO), "source": str optional, "notes": str optional}`.
-- [ ] Question schema: `{"question": str, "ticker": str optional, "intent_hint": str optional, "context": dict optional}` for ticker agent input.
+- [x] Define schema in code (used by validator): `{"name": str, "description": str, "trades": list, "marks": list, "questions": list, "metadata": dict}`.
+- [x] Trade schema (align to OMS week spec): `{"trade_id": str, "ticker": str, "quantity": number, "price": number, "currency": str, "counterparty": str, "trade_dt": str (ISO), "settle_dt": str (ISO), "side": "BUY"|"SELL" optional notes}`.
+- [x] Mark schema (align to pricing week spec): `{"ticker": str, "internal_mark": number, "as_of": str (ISO), "source": str optional, "notes": str optional}`.
+- [x] Question schema: `{"question": str, "ticker": str optional, "intent_hint": str optional, "context": dict optional}` for ticker agent input.
 
 ### 2.2 Clean Day Scenario
 - [x] Create `scenarios/clean_day.json` with multiple tickers/trades/marks, all valid, standard market conditions, no warnings expected.
@@ -75,12 +75,12 @@ Audience: implementation agent. Treat all referenced sub-agents as existing stub
 - [x] Create `scenarios/high_vol_day.json` showing volatile market moves, multiple pricing flags, unusual trade prices, and context data reflecting volatility.
 
 ### 2.7 Scenario Validation
-- [ ] Add automated schema validation and a smoke execution for each scenario; fail fast with descriptive errors if any scenario is invalid.
+- [x] Add automated schema validation and a smoke execution for each scenario; fail fast with descriptive errors if any scenario is invalid.
 
 ## Task 3: Produce an Integrated Report
 
 ### 3.1 Report Schema
-- [ ] Implement report structure exactly:
+- [x] Implement report structure exactly:
   ```json
   {
     "scenario": {"name": "...", "description": "...", "execution_date": "..."},
@@ -96,103 +96,103 @@ Audience: implementation agent. Treat all referenced sub-agents as existing stub
   ```
 
 ### 3.2 Data Quality
-- [ ] Aggregate normalization successes, ambiguities, failures, and confidence scores; flag any missing identifiers.
+- [x] Aggregate normalization successes, ambiguities, failures, and confidence scores; flag any missing identifiers.
 
 ### 3.3 Trade Issues
-- [ ] Aggregate per-trade statuses; group issues by type and severity; retain original trade identifiers.
+- [x] Aggregate per-trade statuses; group issues by type and severity; retain original trade identifiers.
 
 ### 3.4 Pricing Flags
-- [ ] Aggregate marks with classifications (OK, OUT_OF_TOLERANCE, REVIEW_NEEDED, NO_MARKET_DATA); include deviation calculations and explanations sorted by severity.
+- [x] Aggregate marks with classifications (OK, OUT_OF_TOLERANCE, REVIEW_NEEDED, NO_MARKET_DATA); include deviation calculations and explanations sorted by severity.
 
 ### 3.5 Market Context
-- [ ] Include ticker snapshots, market-wide stats, sector performance, recent movements, dates, and data sources when available; leave empty structures when unavailable.
+- [x] Include ticker snapshots, market-wide stats, sector performance, recent movements, dates, and data sources when available; leave empty structures when unavailable.
 
 ### 3.6 Ticker Agent Results
-- [ ] List all questions with detected intent, summary, and metrics; include source/trace info if provided by the stub.
+- [x] List all questions with detected intent, summary, and metrics; include source/trace info if provided by the stub.
 
 ### 3.7 Narrative Generation
-- [ ] Generate an exec-ready summary with key findings, issues, recommendations, and specific numbers; ensure it references the structured results.
+- [x] Generate an exec-ready summary with key findings, issues, recommendations, and specific numbers; ensure it references the structured results.
 
 ### 3.8 Summary Statistics
-- [ ] Compute totals and percentages for trades and marks, plus breakdowns by issue type/severity/ticker/counterparty.
+- [x] Compute totals and percentages for trades and marks, plus breakdowns by issue type/severity/ticker/counterparty.
 
 ### 3.9 Execution Metadata
-- [ ] Record timings, timestamp, scenario name, configuration used, agents executed, and any errors encountered.
+- [x] Record timings, timestamp, scenario name, configuration used, agents executed, and any errors encountered.
 
 ### 3.10 Report Generation Method
-- [ ] Implement `generate_report(results: dict) -> dict` that assembles all sections, pretty-prints on demand, and can optionally write to a file.
+- [x] Implement `generate_report(results: dict) -> dict` that assembles all sections, pretty-prints on demand, and can optionally write to a file.
 
 ### 3.11 Example Report
-- [ ] Populate `examples/combined_report_example.json` with realistic data from one scenario, fully shaped per schema, and human-readable indentation.
+- [x] Populate `examples/combined_report_example.json` with realistic data from one scenario, fully shaped per schema, and human-readable indentation.
 
 ## Configuration Management
 
 ### 4.1 Configuration File
-- [ ] Implement `config.py` to load from env vars (via `load_dotenv()`), YAML/JSON file, then defaults; expose getters for sub-agent settings, paths, tolerances, logging levels, API endpoints, timeouts, and retry policy keys (`DESK_AGENT_MAX_RETRIES`, `DESK_AGENT_BACKOFF_MS`, `DESK_AGENT_ABORT_AFTER_RETRY` with defaults: 2 retries, 500ms backoff, abort on 3rd failure capturing partial results).
+- [x] Implement `config.py` to load from env vars (via `load_dotenv()`), YAML/JSON file, then defaults; expose getters for sub-agent settings, paths, tolerances, logging levels, API endpoints, timeouts, and retry policy keys (`DESK_AGENT_MAX_RETRIES`, `DESK_AGENT_BACKOFF_MS`, `DESK_AGENT_ABORT_AFTER_RETRY` with defaults: 2 retries, 500ms backoff, abort on 3rd failure capturing partial results).
 
 ### 4.2 Sub-Agent Configuration
-- [ ] Reference Master: data path and normalization settings.
-- [ ] Trade QA: tolerance thresholds, valid counterparties list, settlement rules.
-- [ ] Pricing: tolerance thresholds and stale mark thresholds.
-- [ ] Ticker Agent: LLM model/config stub and intent definitions path.
+- [x] Reference Master: data path and normalization settings.
+- [x] Trade QA: tolerance thresholds, valid counterparties list, settlement rules.
+- [x] Pricing: tolerance thresholds and stale mark thresholds.
+- [x] Ticker Agent: LLM model/config stub and intent definitions path.
 
 ## Testing
 
 ### 5.1 Unit Tests
-- [ ] Cover orchestrator init, scenario loading/validation, mocked sub-agent integration, error handling, and report generation.
+- [x] Cover orchestrator init, scenario loading/validation, mocked sub-agent integration, error handling, and report generation.
 
 ### 5.2 Integration Tests
-- [ ] Run full workflow for each scenario (clean day, bad mark, wrong ticker mapping, mis-booked trade, high-vol day) using stubs; include error recovery and optional concurrent execution if supported.
+- [x] Run full workflow for each scenario (clean day, bad mark, wrong ticker mapping, mis-booked trade, high-vol day) using stubs; include error recovery and optional concurrent execution if supported.
 
 ### 5.3 Scenario Tests
-- [ ] Ensure each scenario loads, executes, produces expected structural output, and exercises edge cases.
+- [x] Ensure each scenario loads, executes, produces expected structural output, and exercises edge cases.
 
 ### 5.4 Report Validation Tests
-- [ ] Validate report structure, data types, aggregation correctness, narrative presence, summary stats accuracy, and formatting.
+- [x] Validate report structure, data types, aggregation correctness, narrative presence, summary stats accuracy, and formatting.
 
 ## Logging
 
 ### 6.1 Orchestration Logging
-- [ ] Log scenario start, each sub-agent call (name, input refs, execution time, result summary, errors), workflow steps, report generation, and completion.
+- [x] Log scenario start, each sub-agent call (name, input refs, execution time, result summary, errors), workflow steps, report generation, and completion.
 
 ### 6.2 Performance Logging
-- [ ] Log total execution time plus per-agent and per-step timings; flag slow operations.
+- [x] Log total execution time plus per-agent and per-step timings; flag slow operations.
 
 ### 6.3 Error Logging
-- [ ] Log errors with scenario name, step, type/message, stack trace, and relevant inputs; log warnings and recovery actions.
+- [x] Log errors with scenario name, step, type/message, stack trace, and relevant inputs; log warnings and recovery actions.
 
 ## Documentation
 
 ### 7.1 Module Documentation
-- [ ] Create `src/desk_agent/README.md` with orchestrator overview, usage, configuration guide, scenario/report format, and integration notes.
+- [x] Create `src/desk_agent/README.md` with orchestrator overview, usage, configuration guide, scenario/report format, and integration notes.
 
 ### 7.2 Scenario Documentation
-- [ ] Document schema, each scenario’s purpose/expected outcome/use case, and how to add new scenarios.
+- [x] Document schema, each scenario’s purpose/expected outcome/use case, and how to add new scenarios.
 
 ### 7.3 Report Documentation
-- [ ] Document report structure, section meanings, examples, and interpretation guidelines.
+- [x] Document report structure, section meanings, examples, and interpretation guidelines.
 
 ## Performance and Reliability
 
 ### 8.1 Performance Optimization
-- [ ] Optimize sub-agent execution (parallel where safe, caching if helpful, efficient data structures); target <30s end-to-end per scenario; profile hot paths.
+- [x] Optimize sub-agent execution (parallel where safe, caching if helpful, efficient data structures); target <30s end-to-end per scenario; profile hot paths.
 
 ### 8.2 Reliability
-- [ ] Implement retries/timeouts (config-driven), keep partial results, and validate data at each step.
+- [x] Implement retries/timeouts (config-driven), keep partial results, and validate data at each step.
 
 ### 8.3 Error Recovery
-- [ ] Continue on non-critical errors with meaningful messages and contextual logs; include error context in the report.
+- [x] Continue on non-critical errors with meaningful messages and contextual logs; include error context in the report.
 
 ## Evaluation Criteria
 
 ### 9.1 Functionality
-- [ ] Orchestrator runs reliably; all scenarios execute; all sub-agents integrate correctly; reports are produced per schema.
+- [x] Orchestrator runs reliably; all scenarios execute; all sub-agents integrate correctly; reports are produced per schema.
 
 ### 9.2 Output Quality
-- [ ] Reports are business-grade with clear narrative and actionable insights; show integrated reasoning across issues/context.
+- [x] Reports are business-grade with clear narrative and actionable insights; show integrated reasoning across issues/context.
 
 ### 9.3 Performance
-- [ ] Scenarios complete in acceptable time; system handles load without memory leaks and uses resources efficiently.
+- [x] Scenarios complete in acceptable time; system handles load without memory leaks and uses resources efficiently.
 
 ## Optional Enhancements
 
@@ -206,4 +206,4 @@ Audience: implementation agent. Treat all referenced sub-agents as existing stub
 - [ ] Add scenario versioning, templates, validation tools, comparison tools, and execution history tracking.
 
 ### 10.4 Integration Enhancements
-- [ ] Add webhook support, event-driven execution, real-time updates, orchestrator API endpoints, and a CLI wrapper.
+- [x] Add webhook support, event-driven execution, real-time updates, orchestrator API endpoints, and a CLI wrapper.

@@ -7,13 +7,15 @@ Lightweight ticker Q&A helper that classifies a question, resolves a ticker, fet
 - `financials_revenue_summary`: price, market cap, sector/industry.
 - `dividend_overview`: placeholder fields (`dividend_yield`, `next_ex_date` = None).
 - `volatility_comparison_convertible`: uses 5D return as proxy.
+- `news_sentiment_stub`: placeholder sentiment/headline.
 - `generic_unhandled`: default when no pattern matches.
 
 ## Usage
 ```python
-from src.ticker_agent.ticker_agent import run
+from src.ticker_agent.ticker_agent import run, run_many
 
 resp = run("How is AAPL performing?")
+batch = run_many(["AAPL performance", "MSFT news sentiment?"])
 # resp -> {intent, summary, metrics, source, system_prompt, tools_prompt}
 ```
 
@@ -22,7 +24,11 @@ resp = run("How is AAPL performing?")
 - Market data is always fetched via `data_tools.fd_api.get_equity_snapshot`; no direct API keys configured here.
 
 ## Invocation by other agents
-- Desk/OMS/Pricing should import `ticker_agent.run(question)` and consume the returned dict. Do not call market data directly from here; rely on `data_tools`.
+- Desk/OMS/Pricing should import `ticker_agent.run(question)` (or `run_many([...])`) and consume the returned dict. Do not call market data directly from here; rely on `data_tools`.
+
+## Notes
+- Heuristic ticker parsing handles “AAPL US”, “AAPL.OQ”, uppercase tokens.
+- Snapshots cached via LRU to reduce repeated market data calls.
 
 ## Files
 - `ticker_agent.py`: core API and heuristics.

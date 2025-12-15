@@ -19,6 +19,7 @@ DEFAULTS = {
     "retry_count": 0,
     "retry_backoff_ms": 200,
     "max_workers": 1,
+    "perf_budget_ms": 30000,
 }
 
 
@@ -37,4 +38,5 @@ def load_tolerances(path: str | None = None) -> Dict[str, Any]:
     cfg["retry_count"] = int(os.getenv("PRICING_RETRY_COUNT", cfg["retry_count"]))
     cfg["retry_backoff_ms"] = int(os.getenv("PRICING_RETRY_BACKOFF_MS", cfg["retry_backoff_ms"]))
     cfg["max_workers"] = int(os.getenv("PRICING_MAX_WORKERS", cfg["max_workers"]))
+    cfg["perf_budget_ms"] = int(os.getenv("PRICING_PERF_BUDGET_MS", cfg["perf_budget_ms"]))
     return cfg

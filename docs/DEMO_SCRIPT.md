@@ -1,9 +1,14 @@
 # Demo Script (Week 7)
 
-1. Open with problem: booking/pricing errors, manual validation pain, audit pressure.
-2. Show architecture (FastAPI → Desk orchestrator → agents).
-3. Run `GET /health` to prove readiness.
-4. Run `POST /run-desk-agent` with a clean scenario → highlight summary/narrative.
-5. Run with mis-booked/pricing-issue scenario → show flags, explanations.
-6. Emphasize value: faster checks, fewer errors, audit-friendly outputs, extensibility.
-7. Q&A: latency targets, configuration, integration options.
+## Timing (10–12 minutes)
+1. **Problem framing (1 min):** Booking/pricing errors, manual QA, audit/compliance pressure.
+2. **Architecture tour (1–2 min):** FastAPI → Desk Agent orchestrator → OMS/Pricing/Refmaster/Ticker/Market data.
+3. **Health/readiness (1 min):** `GET /health` showing version, env, scenarios path status.
+4. **Clean run (2 min):** `POST /run-desk-agent` with `scenarios/clean_day.json`; highlight `summary.overall_status=OK`, narrative, zero issues.
+5. **Issue run (3 min):** `scenarios/mis_booked_trade.json` and `bad_mark.json`; walk through `trade_issues`, `pricing_flags`, market context, summary percentages.
+6. **Value (2 min):** Faster checks, fewer breaks, audit-friendly JSON with `X-Request-ID`, configurable tolerances/retries, extensible agents.
+7. **Q&A (1–2 min):** Latency targets, logging/metrics, integration options (direct REST, SDK), security/cors/env separation.
+
+## Backups
+- If market data or scenarios unavailable, show `/scenarios` listing and `/validate-trade` for direct OMS QA.
+- Keep `logs/service.log` handy to show request IDs and structured logging.

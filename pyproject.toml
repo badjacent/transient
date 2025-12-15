@@ -2,6 +2,8 @@
 name = "transient"
 version = "0.1.0"
 description = "Transient.AI Ramp-Up Program - Financial AI Agents"
+authors = [{name = "Transient AI"}]
+license = {text = "Proprietary"}
 requires-python = ">=3.11"
 dependencies = [
     "fastapi>=0.115.0",
@@ -19,9 +21,13 @@ build-backend = "hatchling.build"
 [tool.hatch.build.targets.wheel]
 packages = ["src"]
 
+[project.scripts]
+desk-agent-service = "src.service.main:main"
+
 [tool.uv]
 dev-dependencies = [
     "pytest>=9.0.2",
+    "build>=1.0.3",
 ]
 
 [tool.pytest.ini_options]
