@@ -5,7 +5,7 @@ import pytest
 
 from src.data_tools.schemas import Trade as DataTrade
 from src.oms.oms_agent import OMSAgent
-from src.refmaster.schema import Equity, NormalizationResult
+from src.refmaster.schema import RefMasterEquity, NormalizationResult
 
 
 class DummySnap:
@@ -24,8 +24,8 @@ class NormalizerStub:
         return self._resolver(ticker)
 
 
-def equity(symbol: str) -> Equity:
-    return Equity(symbol=symbol, isin=f"US{symbol:0<9}0"[:12], cusip=f"{symbol:0<9}", currency="USD", exchange="NYSE", pricing_source="TEST")
+def equity(symbol: str) -> RefMasterEquity:
+    return RefMasterEquity(symbol=symbol, isin=f"US{symbol:0<9}0"[:12], cusip=f"{symbol:0<9}", currency="USD", exchange="NYSE", pricing_source="TEST")
 
 
 def test_status_rules_collect_all(monkeypatch):

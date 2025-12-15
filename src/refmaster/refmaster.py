@@ -7,17 +7,21 @@ import re
 from pathlib import Path
 from typing import List, Tuple
 
-from src.data_tools.schemas import Equity
+from src.refmaster.schema import RefMasterEquity
+
+
+DATA_DIR = Path(__file__).resolve().parents[2] / "data"
+DEFAULT_DATA_PATH = DATA_DIR / "refmaster_data.json"
 
 
 class RefMaster:
     """Loads and holds a list of equities from refmaster_data.json."""
 
     def __init__(self, data_path: str | Path | None = None) -> None:
-        path = Path(data_path) if data_path else Path(__file__).parent / "refmaster_data.json"
+        path = Path(data_path) if data_path else DEFAULT_DATA_PATH
         data = json.loads(path.read_text(encoding="utf-8"))
         equities = data.get("equities", [])
-        self.equities: List[Equity] = [Equity(**eq) for eq in equities if isinstance(eq, dict)]
+        self.equities: List[RefMasterEquity] = [RefMasterEquity(**eq) for eq in equities if isinstance(eq, dict)]
 
     def symbols(self) -> List[str]:
         return [eq.symbol for eq in self.equities]
@@ -30,7 +34,7 @@ class NormalizerAgent:
         """Initialize with a RefMaster instance."""
         self.refmaster = refmaster or RefMaster()
 
-    def normalize(self, description_or_id: str) -> List[Tuple[Equity, float]]:
+    def normalize(self, description_or_id: str) -> List[Tuple[RefMasterEquity, float]]:
         """
         Normalize an input string to ranked equity matches with confidence scores.
         
@@ -50,7 +54,7 @@ class NormalizerAgent:
             Confidence scores range from 0.0 to 1.0, where 1.0 is an exact match.
         """
         input_str = description_or_id.strip().upper()
-        matches: List[Tuple[Equity, float]] = []
+        matches: List[Tuple[RefMasterEquity, float]] = []
         
         # Extract potential identifiers from input
         extracted = self._extract_identifiers(input_str)
@@ -121,7 +125,7 @@ class NormalizerAgent:
         return extracted
 
     def _calculate_match_score(
-        self, equity: Equity, input_str: str, extracted: dict
+        self, equity: RefMasterEquity, input_str: str, extracted: dict
     ) -> float:
         """Calculate confidence score for a match between equity and input."""
         max_score = 0.0

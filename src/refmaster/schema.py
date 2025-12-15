@@ -7,7 +7,7 @@ from typing import List, Optional
 from pydantic import BaseModel, Field, validator
 
 
-class Equity(BaseModel):
+class RefMasterEquity(BaseModel):
     """Static identifiers/metadata for an equity security."""
 
     symbol: str
@@ -30,8 +30,7 @@ class Equity(BaseModel):
 class NormalizationResult(BaseModel):
     """Ranked normalization outcome."""
 
-    equity: Equity
+    equity: RefMasterEquity
     confidence: float = Field(ge=0.0, le=1.0)
     reasons: List[str] = Field(default_factory=list)
     ambiguous: bool = False
-

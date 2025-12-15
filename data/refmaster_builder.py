@@ -9,7 +9,7 @@ from pathlib import Path
 from dotenv import load_dotenv
 import requests
 
-from src.data_tools.schemas import Equity
+from src.refmaster.schema import RefMasterEquity
 from src.data_tools.sec_cik import get_cik_for_ticker
 
 load_dotenv()
@@ -24,13 +24,13 @@ TICKERS = [
 ]
 
 
-def _to_equity(symbol: str) -> Equity:
+def _to_equity(symbol: str) -> RefMasterEquity:
     """Create an Equity record with SEC CIK (if available) and placeholder IDs."""
     try:
         cik = get_cik_for_ticker(symbol) or ""
     except Exception:
         cik = ""
-    eq = Equity(
+    eq = RefMasterEquity(
         symbol=symbol,
         isin="",
         cusip="",
@@ -114,7 +114,7 @@ def _ensure_defaults(eq: Equity) -> None:
 def build(output_path: Path | str | None = None) -> Path:
     """Write the hardcoded tickers to refmaster_data.json with Equity schema."""
     path = Path(output_path) if output_path else Path(__file__).parent / "refmaster_data.json"
-    base_equities: Dict[str, Equity] = {t: _to_equity(t) for t in TICKERS}
+    base_equities: Dict[str, RefMasterEquity] = {t: _to_equity(t) for t in TICKERS}
     enriched_equities = _enrich_with_llm(list(base_equities.values()))
     final_equities = []
     for sym, base in base_equities.items():
@@ -131,7 +131,7 @@ def build(output_path: Path | str | None = None) -> Path:
     return path
 
 
-def _enrich_with_llm(equities: List[Equity]) -> Dict[str, Equity]:
+def _enrich_with_llm(equities: List[RefMasterEquity]) -> Dict[str, RefMasterEquity]:
     """Call LLM once to fill identifiers; fallback to original on failure."""
     model = os.getenv("LLM_MODEL") or os.getenv("OPENAI_MODEL")
     api_key = os.getenv("LLM_API_KEY") or os.getenv("OPENAI_API_KEY")
@@ -161,14 +161,14 @@ def _enrich_with_llm(equities: List[Equity]) -> Dict[str, Equity]:
         content = resp.json()["choices"][0]["message"]["content"]
         data = json.loads(content)
         items = data.get("equities", []) if isinstance(data, dict) else []
-        mapping: Dict[str, Equity] = {}
+        mapping: Dict[str, RefMasterEquity] = {}
         for item in items:
             if not isinstance(item, dict):
                 continue
             sym = item.get("symbol")
             if not sym:
                 continue
-            eq = Equity(
+            eq = RefMasterEquity(
                 symbol=sym,
                 isin=item.get("isin", "") or "",
                 cusip=item.get("cusip", "") or "",

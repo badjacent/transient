@@ -11,25 +11,29 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Iterable, List, Optional, Dict
 
-from src.refmaster.schema import Equity, NormalizationResult
+from src.refmaster.schema import RefMasterEquity, NormalizationResult
 
 logger = logging.getLogger(__name__)
 
 
+DATA_DIR = Path(__file__).resolve().parents[2] / "data"
+DEFAULT_DATA_PATH = DATA_DIR / "refmaster_data.json"
+
+
 @lru_cache(maxsize=1)
-def load_equities(data_path: Optional[str] = None) -> List[Equity]:
-    """Load equities from CSV or JSON; falls back to refmaster_data.json in this package or env override."""
+def load_equities(data_path: Optional[str] = None) -> List[RefMasterEquity]:
+    """Load equities from CSV or JSON; falls back to data/refmaster_data.json or env override."""
     env_path = os.getenv("REFMASTER_DATA_PATH")
-    base_path = Path(data_path or env_path) if (data_path or env_path) else Path(__file__).parent / "refmaster_data.json"
+    base_path = Path(data_path or env_path) if (data_path or env_path) else DEFAULT_DATA_PATH
     if base_path.exists() and base_path.suffix.lower() == ".csv":
-        equities: List[Equity] = []
+        equities: List[RefMasterEquity] = []
         with base_path.open(encoding="utf-8") as f:
             reader = csv.DictReader(f)
             for row in reader:
                 if not row:
                     continue
                 try:
-                    equities.append(Equity(**row))
+                    equities.append(RefMasterEquity(**row))
                 except Exception as exc:
                     logger.warning("Skipping malformed equity row %s: %s", row, exc)
         if equities:
@@ -38,12 +42,12 @@ def load_equities(data_path: Optional[str] = None) -> List[Equity]:
     if base_path.exists() and base_path.suffix.lower() == ".json":
         data = json.loads(base_path.read_text(encoding="utf-8"))
         equities = data.get("equities", data) if isinstance(data, dict) else data
-        parsed: List[Equity] = []
+        parsed: List[RefMasterEquity] = []
         for eq in equities:
             if not isinstance(eq, dict):
                 continue
             try:
-                parsed.append(Equity(**eq))
+                parsed.append(RefMasterEquity(**eq))
             except Exception as exc:
                 logger.warning("Skipping malformed equity entry %s: %s", eq, exc)
         if parsed:
@@ -57,7 +61,7 @@ class NormalizerAgent:
 
     def __init__(
         self,
-        equities: Optional[Iterable[Equity]] = None,
+        equities: Optional[Iterable[RefMasterEquity]] = None,
         thresholds: Optional[dict] = None,
     ) -> None:
         self.equities = list(equities) if equities is not None else load_equities()
@@ -89,7 +93,7 @@ class NormalizerAgent:
                         ambiguous=False,
                     )
                 )
-        scored.sort(key=lambda r: r.confidence, reverse=True)
+        scored.sort(key=self._sort_key)
         if not scored or scored[0].confidence < self.thresholds["reject"]:
             logger.info("normalize input=%s result=unknown", input_str)
             return []
@@ -108,7 +112,7 @@ class NormalizerAgent:
         )
         return scored[:top_k]
 
-    def _score(self, eq: Equity, extracted: dict, input_str: str) -> tuple[float, List[str]]:
+    def _score(self, eq: RefMasterEquity, extracted: dict, input_str: str) -> tuple[float, List[str]]:
         reasons: List[str] = []
         score = 0.0
 
@@ -168,6 +172,20 @@ class NormalizerAgent:
             out["country"] = "US"
         return out
 
+    def _sort_key(self, result: NormalizationResult) -> tuple:
+        """Enforce deterministic tie-breakers for equal confidence."""
+        reasons = set(result.reasons or [])
+        exchange_bonus = 1 if "exchange_match" in reasons else 0
+        country_bonus = 1 if "country_match" in reasons else 0
+        symbol = result.equity.symbol or ""
+        return (
+            -result.confidence,
+            -exchange_bonus,
+            -country_bonus,
+            len(symbol),
+            symbol,
+        )
+
 
 def normalize(description_or_id: str, top_k: int = 5) -> List[NormalizationResult]:
     """Convenience function using default agent/cache."""
@@ -175,7 +193,7 @@ def normalize(description_or_id: str, top_k: int = 5) -> List[NormalizationResul
     return agent.normalize(description_or_id, top_k=top_k)
 
 
-def resolve_ticker(symbol: str) -> Optional[Equity]:
+def resolve_ticker(symbol: str) -> Optional[RefMasterEquity]:
     """Return a canonical equity for an exact symbol match."""
     agent = NormalizerAgent()
     symbol = (symbol or "").upper()

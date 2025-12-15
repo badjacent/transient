@@ -6,10 +6,10 @@ from src.refmaster.normalizer_agent import (
     batch_normalize,
     export_equities,
 )
-from src.refmaster.schema import Equity, NormalizationResult
+from src.refmaster.schema import RefMasterEquity, NormalizationResult
 
 __all__ = [
-    "Equity",
+    "RefMasterEquity",
     "NormalizationResult",
     "NormalizerAgent",
     "normalize",
