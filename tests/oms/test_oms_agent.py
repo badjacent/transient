@@ -60,44 +60,69 @@ def test_data_tools_trade_compatibility(monkeypatch):
 @pytest.mark.parametrize("scenario_file", [Path("scenarios/scenarios.json")])
 def test_scenarios(monkeypatch, scenario_file):
     scenarios = json.loads(scenario_file.read_text())
-    # Shared stubs for per-scenario execution
-    def normalizer_for(name: str):
+    assert len(scenarios) >= 10, "production-pressure suite should cover many trades"
+
+    def resolver_for(mode: str):
         def _normalize(ticker: str, top_k: int = 3):
-            if name in {"invalid_ticker"}:
+            if mode == "invalid":
                 return []
-            if name == "ambiguous_ticker":
-                return [NormalizationResult(equity=equity(ticker), confidence=0.91, reasons=["symbol_exact"], ambiguous=True)]
-            if name == "identifier_low_confidence":
-                return [NormalizationResult(equity=equity(ticker), confidence=0.5, reasons=["symbol_in_text"], ambiguous=False)]
-            return [NormalizationResult(equity=equity(ticker), confidence=0.99, reasons=["symbol_exact"], ambiguous=False)]
+            if mode == "ambiguous":
+                return [
+                    NormalizationResult(
+                        equity=equity(ticker),
+                        confidence=0.91,
+                        reasons=["symbol_exact"],
+                        ambiguous=True,
+                    )
+                ]
+            if mode == "low_confidence":
+                return [
+                    NormalizationResult(
+                        equity=equity(ticker),
+                        confidence=0.5,
+                        reasons=["symbol_in_text"],
+                        ambiguous=False,
+                    )
+                ]
+            return [
+                NormalizationResult(
+                    equity=equity(ticker),
+                    confidence=0.99,
+                    reasons=["symbol_exact"],
+                    ambiguous=False,
+                )
+            ]
+
         return _normalize
 
     for scenario in scenarios:
-        name = scenario["name"]
         trade = scenario["trade"]
-        # Price baseline per scenario
-        if name in {"price_out_of_tolerance", "price_warning", "price_below_error"}:
-            market_price = 100.0
+        normalizer_mode = scenario.get("normalizer_mode", "ok")
+        market_price = scenario.get("market_price", trade.get("price", 100.0))
+        if scenario.get("market_data_unavailable"):
+            monkeypatch.setattr(
+                "src.oms.oms_agent.get_price_snapshot",
+                lambda t, d: (_ for _ in ()).throw(RuntimeError("API down")),
+            )
         else:
-            market_price = trade.get("price", 100.0)
-
-        if name == "market_data_unavailable":
-            monkeypatch.setattr("src.oms.oms_agent.get_price_snapshot", lambda t, d: (_ for _ in ()).throw(RuntimeError("API down")))
-        else:
-            monkeypatch.setattr("src.oms.oms_agent.get_price_snapshot", lambda t, d, p=market_price: DummySnap(p))
-
+            monkeypatch.setattr(
+                "src.oms.oms_agent.get_price_snapshot",
+                lambda t, d, p=market_price: DummySnap(p),
+            )
         agent = OMSAgent(
-            normalizer=NormalizerStub(normalizer_for(name)),
+            normalizer=NormalizerStub(resolver_for(normalizer_mode)),
             ref_currency_map={"AAPL": "USD", "MSFT": "USD", "SAP": "EUR"},
         )
         res = agent.run(trade)
         expected_status = scenario["expected_status"]
         expected_issues = scenario["expected_issues"]
-        assert res["status"] == expected_status, f"{name} expected {expected_status} got {res['status']} ({res['issues']})"
+        assert (
+            res["status"] == expected_status
+        ), f"{scenario['name']} expected {expected_status} got {res['status']} ({res['issues']})"
         for expected in expected_issues:
             matches = [
                 i
                 for i in res["issues"]
                 if i["type"] == expected["type"] and i["severity"] == expected["severity"]
             ]
-            assert matches, f"{name} missing expected issue {expected}"
+            assert matches, f"{scenario['name']} missing expected issue {expected}"

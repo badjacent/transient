@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import List, Optional
 
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, Field, field_validator
 
 
 class RefMasterEquity(BaseModel):
@@ -22,7 +22,8 @@ class RefMasterEquity(BaseModel):
     sector: Optional[str] = None
     industry: Optional[str] = None
 
-    @validator("symbol", "currency", "exchange", pre=True, always=True)
+    @field_validator("symbol", "currency", "exchange", mode="before")
+    @classmethod
     def _upper_trim(cls, v: str) -> str:
         return v.strip().upper() if isinstance(v, str) else v
 
