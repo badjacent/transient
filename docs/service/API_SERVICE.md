@@ -3,16 +3,21 @@
 FastAPI wrapper around the Desk Agent orchestrator. OpenAPI is available at `/docs` and `/openapi.json`.
 
 ## Endpoints
+
 - `GET /health`: returns status, version, env, and dependency checks.
 - `POST /run-desk-agent`: run a scenario by name or inline data.
 - `GET /scenarios`: list available scenario files (JSON/YAML).
 - `GET /scenarios/{name}`: fetch a scenario file.
 - `POST /validate-trade`: run OMS trade QA on a payload.
 - `POST /validate-pricing`: validate marks via pricing agent.
+- `POST /ticker-agent`: answer a question about a ticker.
+- `POST /normalize`: normalize a ticker identifier to canonical equity records.
 - `GET /status`: lightweight status/version.
 
 ## Examples
+
 Run desk agent by scenario name:
+
 ```bash
 curl -X POST http://localhost:8000/run-desk-agent \
   -H "Content-Type: application/json" \
@@ -20,6 +25,7 @@ curl -X POST http://localhost:8000/run-desk-agent \
 ```
 
 Inline scenario data:
+
 ```bash
 curl -X POST http://localhost:8000/run-desk-agent \
   -H "Content-Type: application/json" \
@@ -27,8 +33,25 @@ curl -X POST http://localhost:8000/run-desk-agent \
 ```
 
 Validate a trade:
+
 ```bash
 curl -X POST http://localhost:8000/validate-trade \
   -H "Content-Type: application/json" \
   -d '{"trade": {"ticker": "AAPL", "quantity": 100, "price": 190, "currency": "USD", "counterparty": "MS", "trade_dt": "2024-06-05", "settle_dt": "2024-06-07"}}'
+```
+
+Answer a ticker question:
+
+```bash
+curl -X POST http://localhost:8000/ticker-agent \
+  -H "Content-Type: application/json" \
+  -d '{"question": "What are TSLA'\''s fundamentals and risk trends?"}'
+```
+
+Normalize a ticker identifier:
+
+```bash
+curl -X POST http://localhost:8000/normalize \
+  -H "Content-Type: application/json" \
+  -d '{"identifier": "AAPL US", "top_k": 3}'
 ```

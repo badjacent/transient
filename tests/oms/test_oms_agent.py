@@ -57,7 +57,7 @@ def test_data_tools_trade_compatibility(monkeypatch):
     assert not res["issues"]
 
 
-@pytest.mark.parametrize("scenario_file", [Path("scenarios/scenarios.json")])
+@pytest.mark.parametrize("scenario_file", [Path("tests/oms/scenarios.json")])
 def test_scenarios(monkeypatch, scenario_file):
     scenarios = json.loads(scenario_file.read_text())
     assert len(scenarios) >= 10, "production-pressure suite should cover many trades"

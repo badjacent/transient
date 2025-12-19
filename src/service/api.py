@@ -6,10 +6,10 @@ import asyncio
 import json
 import logging
 import time
-from functools import lru_cache
 import uuid
+from functools import lru_cache
 from pathlib import Path
-from typing import Any, Dict, Optional, List
+from typing import Any, Dict, List, Optional
 
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -19,7 +19,9 @@ from pydantic import BaseModel, Field
 from src.desk_agent.orchestrator import DeskAgentOrchestrator
 from src.oms import OMSAgent
 from src.pricing import PricingAgent
+from src.refmaster.normalizer_agent import NormalizerAgent
 from src.service.config import load_config, validate_config
+from src.ticker_agent import ticker_agent
 
 logger = logging.getLogger(__name__)
 SLOW_THRESHOLD_MS = 2000
@@ -40,6 +42,23 @@ class ValidateTradeRequest(BaseModel):
 
 class ValidatePricingRequest(BaseModel):
     marks: List[Dict[str, Any]]
+
+
+class TickerAgentRequest(BaseModel):
+    question: str = Field(..., description="Natural language question about a ticker")
+
+
+class NormalizeRequest(BaseModel):
+    identifier: str = Field(
+        ...,
+        description=(
+            "Ticker identifier to normalize "
+            "(e.g., 'AAPL US', 'US0378331005', 'AAPL.OQ')"
+        ),
+    )
+    top_k: int = Field(
+        default=5, ge=1, le=20, description="Maximum number of results to return"
+    )
 
 
 app = FastAPI(title="Desk Agent Service", version=load_config().get("version", "dev"))
@@ -86,6 +105,7 @@ def _metrics_log(record: Dict[str, Any]) -> None:
     except Exception as exc:
         logger.warning("metrics log failed: %s", exc)
 
+
 # Basic CORS (open by default; tighten as needed)
 app.add_middleware(
     CORSMiddleware,
@@ -106,8 +126,15 @@ def _setup_logging():
     fmt = '{"ts":"%(asctime)s","level":"%(levelname)s","logger":"%(name)s","msg":"%(message)s"}'
     logging.basicConfig(
         level=getattr(logging, cfg.get("log_level", "INFO").upper(), logging.INFO),
-        format=fmt if cfg.get("log_format", "json") == "json" else "%(asctime)s %(levelname)s %(name)s %(message)s",
-        handlers=[logging.StreamHandler(), logging.FileHandler(log_path / "service.log")],
+        format=(
+            fmt
+            if cfg.get("log_format", "json") == "json"
+            else "%(asctime)s %(levelname)s %(name)s %(message)s"
+        ),
+        handlers=[
+            logging.StreamHandler(),
+            logging.FileHandler(log_path / "service.log"),
+        ],
         force=True,
     )
     return cfg
@@ -126,6 +153,16 @@ def _get_oms():
 def _get_pricing():
     """Factory for Pricing agent; isolated for test monkeypatching."""
     return PricingAgent()
+
+
+def _get_ticker_agent():
+    """Factory for Ticker agent; isolated for test monkeypatching."""
+    return ticker_agent
+
+
+def _get_refmaster():
+    """Factory for Refmaster normalizer; isolated for test monkeypatching."""
+    return NormalizerAgent()
 
 
 @lru_cache(maxsize=32)
@@ -158,7 +195,12 @@ async def add_request_id(request: Request, call_next):
             getattr(locals().get("response", None), "status_code", None),
         )
         if duration_ms > SLOW_THRESHOLD_MS:
-            logger.warning("slow_request request_id=%s path=%s duration_ms=%.2f", request_id, request.url.path, duration_ms)
+            logger.warning(
+                "slow_request request_id=%s path=%s duration_ms=%.2f",
+                request_id,
+                request.url.path,
+                duration_ms,
+            )
         _audit_log(
             {
                 "request_id": request_id,
@@ -193,10 +235,10 @@ async def health():
         "version": cfg.get("version"),
         "env": cfg.get("env"),
         "dependencies": {
-            "refmaster": "stub",
+            "refmaster": "active",
             "oms": "stub",
             "pricing": "stub",
-            "ticker_agent": "stub",
+            "ticker_agent": "active",
             "scenarios_path": str(scenarios_path),
             "scenarios_path_exists": scenarios_path.exists(),
         },
@@ -208,7 +250,9 @@ async def health():
 async def run_desk_agent(payload: RunDeskAgentRequest):
     """Execute the desk agent orchestrator for a named or inline scenario with timeout protection."""
     if payload.scenario is None and payload.data is None:
-        raise HTTPException(status_code=400, detail="Provide scenario name/path or data payload.")
+        raise HTTPException(
+            status_code=400, detail="Provide scenario name/path or data payload."
+        )
     orchestrator = _get_orchestrator()
     cfg = load_config()
     try:
@@ -225,7 +269,10 @@ async def run_desk_agent(payload: RunDeskAgentRequest):
     except FileNotFoundError as exc:
         raise ScenarioNotFound(str(exc))
     except asyncio.TimeoutError:
-        raise ServiceError(f"request timed out after {cfg.get('request_timeout_s', 30)}s", status_code=503)
+        raise ServiceError(
+            f"request timed out after {cfg.get('request_timeout_s', 30)}s",
+            status_code=503,
+        )
     except Exception as exc:
         logger.exception("desk agent failed: %s", exc)
         raise ServiceError(str(exc))
@@ -239,7 +286,11 @@ async def list_scenarios():
     path = Path(scenarios_path)
     if not path.exists():
         raise ScenarioNotFound("Scenarios path not found")
-    files = [p.name for p in path.iterdir() if p.is_file() and p.suffix.lower() in {".json", ".yaml", ".yml"}]
+    files = [
+        p.name
+        for p in path.iterdir()
+        if p.is_file() and p.suffix.lower() in {".json", ".yaml", ".yml"}
+    ]
     return {"scenarios": files}
 
 
@@ -279,6 +330,52 @@ async def validate_pricing(payload: ValidatePricingRequest):
         raise ServiceError(str(exc))
 
 
+@app.post("/ticker-agent")
+async def ticker_agent_endpoint(payload: TickerAgentRequest):
+    """Answer a question about a ticker using the ticker agent."""
+    try:
+        loop = asyncio.get_event_loop()
+        result = await loop.run_in_executor(
+            None,
+            _get_ticker_agent().run,
+            payload.question,
+        )
+        return result
+    except Exception as exc:
+        logger.exception("ticker-agent failed: %s", exc)
+        raise ServiceError(str(exc))
+
+
+@app.post("/normalize")
+async def normalize_endpoint(payload: NormalizeRequest):
+    """Normalize a ticker identifier to canonical equity records."""
+    try:
+        loop = asyncio.get_event_loop()
+        results = await loop.run_in_executor(
+            None,
+            _get_refmaster().normalize,
+            payload.identifier,
+            payload.top_k,
+        )
+        # Convert Pydantic models to dicts for JSON serialization
+        return {
+            "identifier": payload.identifier,
+            "results": [
+                {
+                    "equity": result.equity.model_dump(),
+                    "confidence": result.confidence,
+                    "reasons": result.reasons,
+                    "ambiguous": result.ambiguous,
+                }
+                for result in results
+            ],
+            "count": len(results),
+        }
+    except Exception as exc:
+        logger.exception("normalize failed: %s", exc)
+        raise ServiceError(str(exc))
+
+
 @app.get("/status")
 async def status():
     cfg = load_config()
@@ -296,12 +393,24 @@ async def handle_service_error(request: Request, exc: ServiceError):
         exc.status_code,
         exc.message,
     )
-    return JSONResponse(status_code=exc.status_code, content={"error": exc.message, "request_id": request_id})
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={"error": exc.message, "request_id": request_id},
+    )
 
 
 @app.exception_handler(Exception)
 async def handle_unexpected_error(request: Request, exc: Exception):
     _setup_logging()
     request_id = request.headers.get("X-Request-ID", "")
-    logger.exception("unhandled_error path=%s request_id=%s", request.url.path, request_id)
-    return JSONResponse(status_code=500, content={"error": "internal_error", "detail": str(exc), "request_id": request_id})
+    logger.exception(
+        "unhandled_error path=%s request_id=%s", request.url.path, request_id
+    )
+    return JSONResponse(
+        status_code=500,
+        content={
+            "error": "internal_error",
+            "detail": str(exc),
+            "request_id": request_id,
+        },
+    )

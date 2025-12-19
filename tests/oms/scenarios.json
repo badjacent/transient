@@ -1,0 +1,252 @@
+[
+  {
+    "name": "valid_trade",
+    "normalizer_mode": "ok",
+    "market_price": 100.0,
+    "trade": {
+      "ticker": "AAPL",
+      "quantity": 100,
+      "price": 100.0,
+      "currency": "USD",
+      "counterparty": "MS",
+      "trade_dt": "2024-06-05",
+      "settle_dt": "2024-06-07"
+    },
+    "expected_status": "OK",
+    "expected_issues": []
+  },
+  {
+    "name": "invalid_ticker",
+    "normalizer_mode": "invalid",
+    "market_price": 100.0,
+    "trade": {
+      "ticker": "BAD",
+      "quantity": 50,
+      "price": 100.0,
+      "currency": "USD",
+      "counterparty": "MS",
+      "trade_dt": "2024-06-05",
+      "settle_dt": "2024-06-07"
+    },
+    "expected_status": "ERROR",
+    "expected_issues": [
+      {"type": "identifier_mismatch", "severity": "ERROR"}
+    ]
+  },
+  {
+    "name": "ambiguous_ticker",
+    "normalizer_mode": "ambiguous",
+    "market_price": 100.0,
+    "trade": {
+      "ticker": "AAPL",
+      "quantity": 80,
+      "price": 100.0,
+      "currency": "USD",
+      "counterparty": "GS",
+      "trade_dt": "2024-06-05",
+      "settle_dt": "2024-06-07"
+    },
+    "expected_status": "WARNING",
+    "expected_issues": [
+      {"type": "identifier_mismatch", "severity": "WARNING"}
+    ]
+  },
+  {
+    "name": "identifier_low_confidence",
+    "normalizer_mode": "low_confidence",
+    "market_price": 100.0,
+    "trade": {
+      "ticker": "AAPL",
+      "quantity": 60,
+      "price": 100.0,
+      "currency": "USD",
+      "counterparty": "JPM",
+      "trade_dt": "2024-06-05",
+      "settle_dt": "2024-06-07"
+    },
+    "expected_status": "WARNING",
+    "expected_issues": [
+      {"type": "identifier_mismatch", "severity": "WARNING"}
+    ]
+  },
+  {
+    "name": "price_out_of_tolerance",
+    "normalizer_mode": "ok",
+    "market_price": 100.0,
+    "trade": {
+      "ticker": "MSFT",
+      "quantity": 120,
+      "price": 150.0,
+      "currency": "USD",
+      "counterparty": "MS",
+      "trade_dt": "2024-06-05",
+      "settle_dt": "2024-06-07"
+    },
+    "expected_status": "ERROR",
+    "expected_issues": [
+      {"type": "price_tolerance", "severity": "ERROR"}
+    ]
+  },
+  {
+    "name": "price_warning",
+    "normalizer_mode": "ok",
+    "market_price": 100.0,
+    "trade": {
+      "ticker": "MSFT",
+      "quantity": 90,
+      "price": 103.0,
+      "currency": "USD",
+      "counterparty": "MS",
+      "trade_dt": "2024-06-05",
+      "settle_dt": "2024-06-07"
+    },
+    "expected_status": "WARNING",
+    "expected_issues": [
+      {"type": "price_tolerance", "severity": "WARNING"}
+    ]
+  },
+  {
+    "name": "price_below_error",
+    "normalizer_mode": "ok",
+    "market_price": 100.0,
+    "trade": {
+      "ticker": "MSFT",
+      "quantity": 90,
+      "price": 80.0,
+      "currency": "USD",
+      "counterparty": "MS",
+      "trade_dt": "2024-06-05",
+      "settle_dt": "2024-06-07"
+    },
+    "expected_status": "ERROR",
+    "expected_issues": [
+      {"type": "price_tolerance", "severity": "ERROR"}
+    ]
+  },
+  {
+    "name": "market_data_unavailable",
+    "normalizer_mode": "ok",
+    "market_data_unavailable": true,
+    "trade": {
+      "ticker": "AAPL",
+      "quantity": 100,
+      "price": 100.0,
+      "currency": "USD",
+      "counterparty": "MS",
+      "trade_dt": "2024-06-05",
+      "settle_dt": "2024-06-07"
+    },
+    "expected_status": "WARNING",
+    "expected_issues": [
+      {"type": "price_tolerance", "severity": "WARNING"}
+    ]
+  },
+  {
+    "name": "currency_mismatch",
+    "normalizer_mode": "ok",
+    "market_price": 100.0,
+    "trade": {
+      "ticker": "SAP",
+      "quantity": 75,
+      "price": 100.0,
+      "currency": "USD",
+      "counterparty": "MS",
+      "trade_dt": "2024-06-05",
+      "settle_dt": "2024-06-07"
+    },
+    "expected_status": "WARNING",
+    "expected_issues": [
+      {"type": "currency_mismatch", "severity": "WARNING"}
+    ]
+  },
+  {
+    "name": "counterparty_warning",
+    "normalizer_mode": "ok",
+    "market_price": 100.0,
+    "trade": {
+      "ticker": "AAPL",
+      "quantity": 70,
+      "price": 100.0,
+      "currency": "USD",
+      "counterparty": "UNKNOWN",
+      "trade_dt": "2024-06-05",
+      "settle_dt": "2024-06-07"
+    },
+    "expected_status": "WARNING",
+    "expected_issues": [
+      {"type": "counterparty", "severity": "WARNING"}
+    ]
+  },
+  {
+    "name": "settlement_before_trade",
+    "normalizer_mode": "ok",
+    "market_price": 100.0,
+    "trade": {
+      "ticker": "AAPL",
+      "quantity": 100,
+      "price": 100.0,
+      "currency": "USD",
+      "counterparty": "MS",
+      "trade_dt": "2024-06-05",
+      "settle_dt": "2024-06-04"
+    },
+    "expected_status": "ERROR",
+    "expected_issues": [
+      {"type": "settlement_date", "severity": "ERROR"}
+    ]
+  },
+  {
+    "name": "settlement_weekend",
+    "normalizer_mode": "ok",
+    "market_price": 100.0,
+    "trade": {
+      "ticker": "AAPL",
+      "quantity": 100,
+      "price": 100.0,
+      "currency": "USD",
+      "counterparty": "MS",
+      "trade_dt": "2024-06-06",
+      "settle_dt": "2024-06-08"
+    },
+    "expected_status": "ERROR",
+    "expected_issues": [
+      {"type": "settlement_date", "severity": "ERROR"}
+    ]
+  },
+  {
+    "name": "missing_field",
+    "normalizer_mode": "ok",
+    "market_price": 100.0,
+    "trade": {
+      "ticker": "AAPL",
+      "quantity": 100,
+      "price": 100.0,
+      "counterparty": "MS",
+      "trade_dt": "2024-06-05",
+      "settle_dt": "2024-06-07"
+    },
+    "expected_status": "ERROR",
+    "expected_issues": [
+      {"type": "missing_field", "severity": "ERROR"},
+      {"type": "schema_validation", "severity": "ERROR"}
+    ]
+  },
+  {
+    "name": "nonstandard_settlement",
+    "normalizer_mode": "ok",
+    "market_price": 100.0,
+    "trade": {
+      "ticker": "AAPL",
+      "quantity": 100,
+      "price": 100.0,
+      "currency": "USD",
+      "counterparty": "MS",
+      "trade_dt": "2024-06-03",
+      "settle_dt": "2024-06-10"
+    },
+    "expected_status": "WARNING",
+    "expected_issues": [
+      {"type": "settlement_date", "severity": "WARNING"}
+    ]
+  }
+]

@@ -47,11 +47,19 @@ class MarketNormalizer:
                 return result
             except Exception as exc:
                 if attempt >= retries:
-                    return {"error": str(exc)}
+                    error_msg = str(exc).lower()
+                    if "network" in error_msg or "connection" in error_msg:
+                        return {"error": f"network_error: {exc}"}
+                    elif "not found" in error_msg or "invalid ticker" in error_msg:
+                        return {"error": "ticker_not_found"}
+                    elif "rate limit" in error_msg:
+                        return {"error": "rate_limit_exceeded"}
+                    else:
+                        return {"error": f"fetch_failed: {exc}"}
                 attempt += 1
                 time.sleep(backoff_ms / 1000.0 if backoff_ms else 0)
 
-    def compare_mark_to_market(self, internal_mark: float, market_price: Optional[float]) -> Dict[str, Any]:
+    def compare_mark_to_market(self, internal_mark: float, market_price: Optional[float], ticker: str) -> Dict[str, Any]:
         """Compute deviation and classification given tolerances."""
         if market_price is None:
             return {
@@ -60,11 +68,20 @@ class MarketNormalizer:
                 "deviation_percentage": None,
                 "classification": "NO_MARKET_DATA",
             }
+
+        # Check for per-instrument overrides
+        overrides = self.tolerances.get("instrument_overrides", {})
+        if ticker in overrides:
+            ok_th = overrides[ticker].get("ok_threshold", self.tolerances["ok_threshold"])
+            review_th = overrides[ticker].get("review_threshold", self.tolerances["review_threshold"])
+            logger.debug("Applying override thresholds for %s: ok=%s, review=%s", ticker, ok_th, review_th)
+        else:
+            ok_th = self.tolerances["ok_threshold"]
+            review_th = self.tolerances["review_threshold"]
+
         deviation_abs = internal_mark - market_price
         deviation_pct = abs(deviation_abs) / market_price if market_price else None
         cls = "OK"
-        ok_th = self.tolerances["ok_threshold"]
-        review_th = self.tolerances["review_threshold"]
         if deviation_pct is None:
             cls = "NO_MARKET_DATA"
         elif deviation_pct > review_th:
@@ -72,11 +89,12 @@ class MarketNormalizer:
         elif deviation_pct > ok_th:
             cls = "REVIEW_NEEDED"
         logger.info(
-            "compare mark=%s market=%s deviation_pct=%s classification=%s",
+            "compare mark=%s market=%s deviation_pct=%s classification=%s ticker=%s",
             internal_mark,
             market_price,
             f"{deviation_pct:.4f}" if deviation_pct is not None else None,
             cls,
+            ticker,
         )
         return {
             "market_price": market_price,
@@ -116,6 +134,18 @@ class MarketNormalizer:
         return marks
 
     def _enrich_one(self, record: Dict[str, Any]) -> EnrichedMark:
+        """
+        Enrich a single mark with market data and classification.
+
+        Classification precedence (highest to lowest):
+        1. NO_MARKET_DATA: Market fetch failed or ticker unknown
+        2. STALE_MARK: Mark as_of_date exceeds stale_days threshold
+        3. OUT_OF_TOLERANCE: Deviation > review_threshold
+        4. REVIEW_NEEDED: ok_threshold < deviation <= review_threshold
+        5. OK: Deviation <= ok_threshold
+
+        Per-instrument tolerance overrides are applied if configured.
+        """
         mark = Mark(**record)
         # Optional refmaster validation
         if self.refmaster:
@@ -136,8 +166,11 @@ class MarketNormalizer:
                 )
         result = self.fetch_market_price(mark.ticker, mark.as_of_date)
         market_price = result.get("price")
-        enriched_fields = self.compare_mark_to_market(mark.internal_mark, market_price)
+        enriched_fields = self.compare_mark_to_market(mark.internal_mark, market_price, mark.ticker)
         enriched_fields["market_data_date"] = result.get("date")
+        enriched_fields["market_data_source"] = "financialdatasets.ai"
+        enriched_fields["fetch_timestamp"] = datetime.utcnow().isoformat() + "Z"
+        enriched_fields["tolerance_override_applied"] = mark.ticker in self.tolerances.get("instrument_overrides", {})
         if self._is_stale(mark.as_of_date) and enriched_fields["classification"] != "NO_MARKET_DATA":
             enriched_fields["classification"] = "STALE_MARK"
         if result.get("error"):

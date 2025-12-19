@@ -1,54 +1,67 @@
 ticker,internal_mark,as_of_date,notes,source,position_id,portfolio_id,instrument_type,currency
-AAPL,190.00,2024-06-05,Inline mark within tolerance,internal,P1,Tech-LC,equity,USD
-MSFT,330.00,2024-06-05,Inline mark within tolerance,internal,P2,Tech-LC,equity,USD
-GOOG,2750.00,2024-06-05,Inline mark within tolerance,internal,P3,Tech-LC,equity,USD
-AMZN,135.50,2024-06-05,Inline mark within tolerance,internal,P4,Tech-LC,equity,USD
-META,315.00,2024-06-05,Inline mark within tolerance,internal,P5,Tech-LC,equity,USD
-NFLX,410.00,2024-06-05,Inline mark within tolerance,internal,P6,Media,equity,USD
-TSLA,175.00,2024-06-04,Volatile name mark,internal,P7,Auto,equity,USD
-NVDA,1050.00,2024-06-05,High flyer inline,internal,P8,Semis,equity,USD
-AMD,165.00,2024-06-05,Inline mark within tolerance,internal,P9,Semis,equity,USD
-INTC,45.00,2024-06-05,Inline mark within tolerance,internal,P10,Semis,equity,USD
-ORCL,125.00,2024-06-05,Inline mark within tolerance,internal,P11,Software,equity,USD
-CRM,245.00,2024-06-05,Inline mark within tolerance,internal,P12,Software,equity,USD
-ADBE,520.00,2024-06-05,Inline mark within tolerance,internal,P13,Software,equity,USD
-SAP,140.00,2024-06-05,Inline EUR name,internal,P14,Software,equity,EUR
-SONY,88.00,2024-06-05,Inline JPY ADR,internal,P15,Media,equity,USD
-BABA,85.00,2024-06-05,China ADR,internal,P16,Internet,equity,USD
-PDD,145.00,2024-06-05,China ADR,internal,P17,Internet,equity,USD
-JD,28.00,2024-06-05,China ADR,internal,P18,Internet,equity,USD
-SHOP,65.00,2024-06-05,Canada ecomm,internal,P19,Ecomm,equity,USD
-SQ,70.00,2024-06-05,Fintech inline,internal,P20,Fintech,equity,USD
-PYPL,62.00,2024-06-05,Fintech inline,internal,P21,Fintech,equity,USD
-V,270.00,2024-06-05,Fintech inline,internal,P22,Fintech,equity,USD
-MA,470.00,2024-06-05,Fintech inline,internal,P23,Fintech,equity,USD
-AXP,210.00,2024-06-05,Fintech inline,internal,P24,Fintech,equity,USD
-JPM,140.00,2024-06-05,Bank inline,internal,P25,Banks,equity,USD
-BAC,38.00,2024-06-05,Bank inline,internal,P26,Banks,equity,USD
-C,58.00,2024-06-05,Bank inline,internal,P27,Banks,equity,USD
-GS,360.00,2024-06-05,Bank inline,internal,P28,Banks,equity,USD
-MS,105.00,2024-06-05,Bank inline,internal,P29,Banks,equity,USD
-WFC,53.00,2024-06-05,Bank inline,internal,P30,Banks,equity,USD
-BA,185.00,2024-06-05,Industrial inline,internal,P31,Industrials,equity,USD
-GE,160.00,2024-06-05,Industrial inline,internal,P32,Industrials,equity,USD
-CAT,275.00,2024-06-05,Industrial inline,internal,P33,Industrials,equity,USD
-HON,205.00,2024-06-05,Industrial inline,internal,P34,Industrials,equity,USD
-MMM,90.00,2024-06-05,Industrial inline,internal,P35,Industrials,equity,USD
-XOM,120.00,2024-06-05,Energy inline,internal,P36,Energy,equity,USD
-CVX,155.00,2024-06-05,Energy inline,internal,P37,Energy,equity,USD
-BP,36.00,2024-06-05,Energy inline,internal,P38,Energy,equity,USD
-SHEL,67.00,2024-06-05,Energy inline,internal,P39,Energy,equity,USD
-TTE,62.00,2024-06-05,Energy inline,internal,P40,Energy,equity,USD
-JNJ,155.00,2024-06-05,Health inline,internal,P41,Health,equity,USD
-PFE,34.00,2024-06-05,Health inline,internal,P42,Health,equity,USD
-MRNA,112.00,2024-06-05,Health volatile,internal,P43,Health,equity,USD
-LLY,815.00,2024-06-05,Health inline,internal,P44,Health,equity,USD
-AMGN,275.00,2024-06-05,Health inline,internal,P45,Health,equity,USD
-PG,155.00,2024-06-05,Consumer staples,internal,P46,Staples,equity,USD
-KO,62.00,2024-06-05,Consumer staples,internal,P47,Staples,equity,USD
-PEP,180.00,2024-06-05,Consumer staples,internal,P48,Staples,equity,USD
-HD,330.00,2024-06-05,Consumer discretionary,internal,P49,Discretionary,equity,USD
-LOW,230.00,2024-06-05,Consumer discretionary,internal,P50,Discretionary,equity,USD
-RY,96.00,2024-05-15,Stale mark Canada bank,internal,P51,Banks,equity,USD
-TD,58.00,2024-05-15,Stale mark Canada bank,internal,P52,Banks,equity,USD
-UBS,31.00,2024-05-10,Stale mark EU bank,internal,P53,Banks,equity,USD
+AAPL,271.50,2025-12-17,Inline mark within tolerance,internal,P1,Tech-LC,equity,USD
+MSFT,475.00,2025-12-17,Inline mark within tolerance,internal,P2,Tech-LC,equity,USD
+GOOGL,295.50,2025-12-17,Inline mark within tolerance,internal,P3,Tech-LC,equity,USD
+AMZN,220.00,2025-12-17,Inline mark within tolerance,internal,P4,Tech-LC,equity,USD
+META,648.00,2025-12-17,Inline mark within tolerance,internal,P5,Tech-LC,equity,USD
+NFLX,95.00,2025-12-17,Inline mark within tolerance,internal,P6,Media,equity,USD
+NVDA,170.50,2025-12-17,Inline mark within tolerance,internal,P8,Semis,equity,USD
+AMD,197.50,2025-12-17,Inline mark within tolerance,internal,P9,Semis,equity,USD
+INTC,21.00,2025-12-17,Inline mark within tolerance,internal,P10,Semis,equity,USD
+ORCL,190.00,2025-12-17,Inline mark within tolerance,internal,P11,Software,equity,USD
+CRM,360.00,2025-12-17,Inline mark within tolerance,internal,P12,Software,equity,USD
+ADBE,445.00,2025-12-17,Inline mark within tolerance,internal,P13,Software,equity,USD
+BABA,88.00,2025-12-17,China ADR inline,internal,P16,Internet,equity,USD
+PDD,103.00,2025-12-17,China ADR inline,internal,P17,Internet,equity,USD
+JD,37.50,2025-12-17,China ADR inline,internal,P18,Internet,equity,USD
+SHOP,119.00,2025-12-17,Canada ecomm inline,internal,P19,Ecomm,equity,USD
+PYPL,60.50,2025-12-17,Fintech inline,internal,P21,Fintech,equity,USD
+V,318.00,2025-12-17,Fintech inline,internal,P22,Fintech,equity,USD
+MA,530.00,2025-12-17,Fintech inline,internal,P23,Fintech,equity,USD
+AXP,301.00,2025-12-17,Fintech inline,internal,P24,Fintech,equity,USD
+JPM,314.00,2025-12-17,Bank inline,internal,P25,Banks,equity,USD
+BAC,54.50,2025-12-17,Bank inline,internal,P26,Banks,equity,USD
+C,111.00,2025-12-17,Bank inline,internal,P27,Banks,equity,USD
+GS,870.00,2025-12-17,Bank inline,internal,P28,Banks,equity,USD
+MS,142.00,2025-12-17,Bank inline,internal,P29,Banks,equity,USD
+WFC,92.50,2025-12-17,Bank inline,internal,P30,Banks,equity,USD
+BA,206.00,2025-12-17,Industrial inline,internal,P31,Industrials,equity,USD
+GE,291.00,2025-12-17,Industrial inline,internal,P32,Industrials,equity,USD
+CAT,560.00,2025-12-17,Industrial inline,internal,P33,Industrials,equity,USD
+TSLA,466.00,2025-12-17,Volatile name mark,internal,P7,Auto,equity,USD
+XOM,117.00,2025-12-17,Energy inline,internal,P36,Energy,equity,USD
+CVX,149.00,2025-12-17,Energy inline,internal,P37,Energy,equity,USD
+JNJ,210.00,2025-12-17,Health inline,internal,P41,Health,equity,USD
+PFE,25.00,2025-12-17,Health inline,internal,P42,Health,equity,USD
+LLY,1040.00,2025-12-17,Health inline,internal,P44,Health,equity,USD
+PG,147.50,2025-12-17,Consumer staples,internal,P46,Staples,equity,USD
+KO,70.50,2025-12-17,Consumer staples,internal,P47,Staples,equity,USD
+PEP,150.00,2025-12-17,Consumer staples,internal,P48,Staples,equity,USD
+HD,356.00,2025-12-17,Consumer discretionary,internal,P49,Discretionary,equity,USD
+LOW,247.50,2025-12-17,Consumer discretionary,internal,P50,Discretionary,equity,USD
+SONY,21.50,2025-12-17,Japan ADR inline,internal,P15,Media,equity,USD
+HON,233.00,2025-12-17,Industrial inline,internal,P34,Industrials,equity,USD
+MMM,128.00,2025-12-17,Industrial inline,internal,P35,Industrials,equity,USD
+AMGN,265.00,2025-12-17,Health inline,internal,P45,Health,equity,USD
+COIN,315.00,2025-12-17,Crypto exposure inline,internal,P53,Fintech,equity,USD
+RIVN,15.30,2025-12-17,Auto inline,internal,P54,Auto,equity,USD
+TSLA,454.00,2025-12-16,Moderate variance - volatile name,internal,P51,Auto,equity,USD
+NFLX,89.00,2025-12-16,Moderate variance - check source,internal,P52,Media,equity,USD
+MRNA,41.50,2025-12-16,Moderate variance - biotech volatile,internal,P43,Health,equity,USD
+PLTR,75.00,2025-12-16,Moderate variance - growth name,internal,P55,Software,equity,USD
+SNOW,172.00,2025-12-16,Moderate variance - check pricing model,internal,P56,Software,equity,USD
+ZM,83.00,2025-12-16,Moderate variance - verify source,internal,P57,Software,equity,USD
+DIS,118.00,2025-12-16,Moderate variance - media exposure,internal,P58,Media,equity,USD
+T,25.00,2025-12-16,Moderate variance - telecom check,internal,P59,Telecom,equity,USD
+AMD,176.00,2025-12-15,OUT OF TOLERANCE - stale internal mark,internal,P60,Semis,equity,USD
+NVDA,152.00,2025-12-15,OUT OF TOLERANCE - pricing model issue,internal,P61,Semis,equity,USD
+META,590.00,2025-12-15,OUT OF TOLERANCE - check for corp action,internal,P62,Tech-LC,equity,USD
+AAPL,247.00,2025-12-15,OUT OF TOLERANCE - data entry error suspected,internal,P63,Tech-LC,equity,USD
+MSFT,430.00,2025-12-15,OUT OF TOLERANCE - verify pricing source,internal,P64,Tech-LC,equity,USD
+RY,125.00,2025-12-01,Stale mark - refresh required,internal,P65,Banks,equity,USD
+TD,56.00,2025-12-01,Stale mark - refresh required,internal,P66,Banks,equity,USD
+UBS,31.00,2025-11-28,Stale mark - EU bank position,internal,P67,Banks,equity,USD
+BNS,52.00,2025-12-02,Stale mark - Canada bank,internal,P68,Banks,equity,USD
+DELISTED,100.00,2025-12-17,Delisted security - no market data,internal,P69,Legacy,equity,USD
+BADTICK,50.00,2025-12-17,Invalid ticker - mapping error,internal,P70,Test,equity,USD
+UNKNOWN,75.00,2025-12-17,Unknown instrument - investigate,internal,P71,Test,equity,USD

@@ -1,3 +1,46 @@
-ok_threshold: 0.02
-review_threshold: 0.05
-stale_days: 5
+# === Global Tolerances ===
+ok_threshold: 0.02              # Marks within 2% are OK
+review_threshold: 0.05          # 2-5% triggers REVIEW_NEEDED
+# Above review_threshold → OUT_OF_TOLERANCE
+
+# === Stale Mark Detection ===
+stale_days: 5                   # Marks older than 5 days are STALE_MARK
+
+# === Market Data Retry Configuration ===
+retry_count: 2                  # Retry failed market data fetches up to 2 times
+retry_backoff_ms: 200           # Wait 200ms between retries
+
+# === Performance Configuration ===
+max_workers: 4                  # Use 4 threads for parallel market data fetching
+perf_budget_ms: 30000           # Entire pricing run should complete within 30 seconds
+
+# === Per-Instrument Tolerance Overrides ===
+# Format: ticker → custom thresholds
+instrument_overrides:
+  TSLA:
+    ok_threshold: 0.05          # TSLA is volatile, allow 5% OK threshold
+    review_threshold: 0.10      # Review only if >10%
+    reason: "high volatility stock"
+
+  NFLX:
+    ok_threshold: 0.04
+    review_threshold: 0.08
+    reason: "high volatility stock"
+
+  COIN:
+    ok_threshold: 0.06
+    review_threshold: 0.12
+    reason: "crypto exposure - high volatility"
+
+# === Audit & Logging Configuration ===
+# These can be overridden via environment variables:
+# PRICING_AUDIT_LOG=/path/to/audit.jsonl
+# PRICING_METRICS_LOG=/path/to/metrics.jsonl
+audit_enabled: true
+metrics_enabled: true
+
+# === Classification Priority ===
+# (Documentation only - defines classification precedence)
+# 1. NO_MARKET_DATA (if fetch fails or ticker unknown)
+# 2. STALE_MARK (if as_of_date exceeds stale_days)
+# 3. OUT_OF_TOLERANCE / REVIEW_NEEDED / OK (based on deviation)

@@ -42,6 +42,9 @@ class EnrichedMark(Mark):
     deviation_percentage: Optional[float] = None
     classification: str
     market_data_date: Optional[str] = None
+    market_data_source: Optional[str] = None
+    fetch_timestamp: Optional[str] = None
+    tolerance_override_applied: Optional[bool] = None
     error: Optional[str] = None
     explanation: Optional[str] = None
 

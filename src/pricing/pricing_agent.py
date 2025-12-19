@@ -98,31 +98,74 @@ class PricingAgent:
         avg_dev = sum(deviations) / len(deviations) if deviations else None
         max_dev = max(deviations) if deviations else None
         top_tickers = sorted({m.ticker for m in marks if m.classification != "OK"})
+
+        # Add new statistics
+        pass_rate = counts.get("OK", 0) / total if total > 0 else 0.0
+        flagged_count = counts.get("REVIEW_NEEDED", 0) + counts.get("OUT_OF_TOLERANCE", 0)
+        critical_count = counts.get("OUT_OF_TOLERANCE", 0)
+        data_quality_issues = counts.get("NO_MARKET_DATA", 0) + counts.get("STALE_MARK", 0)
+
         return {
             "counts": counts,
             "total_marks": total,
             "average_deviation": avg_dev,
             "max_deviation": max_dev,
             "top_tickers": top_tickers,
+            "pass_rate": pass_rate,
+            "flagged_count": flagged_count,
+            "critical_count": critical_count,
+            "data_quality_issues": data_quality_issues,
         }
 
     def _explain(self, mark: EnrichedMark) -> str:
         cls = mark.classification
+
         if cls == "OUT_OF_TOLERANCE":
             return (
-                f"{mark.ticker} mark {mark.internal_mark} vs market {mark.market_price} "
-                f"({mark.deviation_percentage:.2%} off); check for stale data, corp actions, or input errors."
+                f"{mark.ticker} OUT OF TOLERANCE: internal mark {mark.internal_mark:.2f} "
+                f"vs market {mark.market_price:.2f} (deviation: {mark.deviation_percentage:.2%}). "
+                f"Possible causes: (1) stale internal mark, (2) corporate action not reflected, "
+                f"(3) data entry error, (4) illiquid security with wide bid-ask. "
+                f"Action: Verify mark source and update if necessary."
             )
+
         if cls == "REVIEW_NEEDED":
             return (
-                f"{mark.ticker} mark {mark.internal_mark} vs market {mark.market_price} "
-                f"({mark.deviation_percentage:.2%} off); moderate variance, verify source."
+                f"{mark.ticker} REVIEW NEEDED: internal mark {mark.internal_mark:.2f} "
+                f"vs market {mark.market_price:.2f} (deviation: {mark.deviation_percentage:.2%}). "
+                f"Moderate variance detected. Verify: (1) mark source is current, "
+                f"(2) no pending corporate actions, (3) pricing model assumptions are valid. "
+                f"May be acceptable if justified by position-specific factors."
             )
+
         if cls == "NO_MARKET_DATA":
-            return f"{mark.ticker} missing market data; investigate data source or ticker mapping. {mark.error or ''}".strip()
+            error_detail = f" Error: {mark.error}" if mark.error else ""
+            return (
+                f"{mark.ticker} NO MARKET DATA: Unable to fetch benchmark price.{error_detail} "
+                f"Possible causes: (1) ticker delisted/invalid, (2) market data vendor issue, "
+                f"(3) ticker mapping error. "
+                f"Action: Verify ticker mapping in reference master, check data source availability."
+            )
+
         if cls == "STALE_MARK":
-            return f"{mark.ticker} mark dated {mark.as_of_date} exceeds stale threshold; refresh required."
-        return f"{mark.ticker} within tolerance."
+            from datetime import datetime, date
+            try:
+                age_days = (datetime.utcnow().date() - date.fromisoformat(mark.as_of_date)).days
+                age_str = f" ({age_days} days old)"
+            except:
+                age_str = ""
+            return (
+                f"{mark.ticker} STALE MARK: Mark dated {mark.as_of_date}{age_str} "
+                f"exceeds {self.normalizer.tolerances.get('stale_days', 5)}-day threshold. "
+                f"Action: Refresh mark with current EOD pricing before auditor review."
+            )
+
+        # OK
+        return (
+            f"{mark.ticker} OK: internal mark {mark.internal_mark:.2f} "
+            f"vs market {mark.market_price:.2f} (deviation: {mark.deviation_percentage:.2%}) "
+            f"within acceptable tolerance."
+        )
 
     def _audit(self, enriched: List[Dict[str, Any]]) -> None:
         """Append audit entries to file if PRICING_AUDIT_LOG is set."""

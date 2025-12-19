@@ -7,6 +7,7 @@ This document describes how `sample_qa.jsonl` was generated from 10-K HTML filin
 The following 10-K filings were processed:
 
 1. **Tesla 10-K (2020)**
+
    - Filename: `tsla-10k_20201231.htm`
    - Source: https://www.sec.gov/Archives/edgar/data/1318605/000156459021004599/tsla-10k_20201231.htm
    - Local path: `examples/data_tools/filings/tsla-10k_20201231.htm`
@@ -134,5 +135,5 @@ The `sample_qa.jsonl` file contains one JSON object per line with:
 - `financialdatasets.ai` does **not** adjust prices for corporate actions (splits, dividends, symbol changes). Snapshot returns are raw ratios of the provided close prices, so dividend-heavy names will appear to gap lower on ex-div dates and split activity must be handled downstream.
 - The service lacks canonical security identifiers (ISIN/CUSIP/FIGI) and only supports ticker strings, which introduces ambiguity for dual-listed or share-class variants.
 - There is no trading-calendar awareness; the price fetch simply requests a rolling window and infers trading days from nonzero-volume rows. Holidays/halts are not automatically aligned to an exchange calendar.
-- Neither the snapshot API nor the QA pipeline includes sentiment/news data. When a portfolio manager asks for “sentiment,” the current Week 1 tools can only return fundamentals and return metrics; sentiment must be sourced elsewhere (or clearly noted as unavailable).
-- Because these gaps mirror the `fd_api.py` “IMPORTANT ASSUMPTION” notes, downstream agents must validate prices against an authoritative feed before using them for risk, OMS, or pricing workflows.
+- Neither the snapshot API nor the QA pipeline includes sentiment/news data. When a portfolio manager asks for "sentiment," the current Week 1 tools can only return fundamentals and return metrics; sentiment must be sourced elsewhere (or clearly noted as unavailable).
+- Because these gaps mirror the `fd_api.py` "IMPORTANT ASSUMPTION" notes, downstream agents must validate prices against an authoritative feed before using them for risk, OMS, or pricing workflows.

@@ -266,15 +266,12 @@ class DeskAgentOrchestrator:
         if not marks:
             logger.info("no marks provided; skipping pricing")
             return {"enriched_marks": [], "summary": {}}
-        try:
-            normalized_marks = []
-            for mark in marks:
-                if "as_of" in mark and "as_of_date" not in mark:
-                    mark = {**mark, "as_of_date": mark["as_of"]}
-                normalized_marks.append(mark)
-            return self.pricing_agent.run(normalized_marks)
-        except Exception as exc:
-            return {"enriched_marks": [], "summary": {}, "error": str(exc)}
+        normalized_marks = []
+        for mark in marks:
+            if "as_of" in mark and "as_of_date" not in mark:
+                mark = {**mark, "as_of_date": mark["as_of"]}
+            normalized_marks.append(mark)
+        return self.pricing_agent.run(normalized_marks)
 
     def _run_ticker(self, questions: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         results = []
