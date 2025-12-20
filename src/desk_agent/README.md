@@ -1,5 +1,7 @@
 # Desk Agent Orchestrator (Week 6)
 
+![Status](https://img.shields.io/badge/status-production-green) ![Python](https://img.shields.io/badge/python-3.11+-blue)
+
 ## Business Context
 
 The Desk Agent Orchestrator automates the end-of-day validation workflow that hedge fund operations teams run manually, reducing a multi-hour process to under 30 seconds while providing comprehensive audit trails.

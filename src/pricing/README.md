@@ -1,5 +1,7 @@
 # Pricing Agent (Week 5)
 
+![Status](https://img.shields.io/badge/status-production-green) ![Python](https://img.shields.io/badge/python-3.11+-blue)
+
 ## Business Context
 
 The Pricing Agent validates internal End-of-Day (EOD) marks against external market data to:
@@ -370,9 +372,20 @@ pytest tests/pricing/ --cov=src/pricing
 ### Performance Considerations
 
 - **Parallel fetching**: Use `max_workers > 1` to fetch market data in parallel
+  - Set `PRICING_MAX_WORKERS` environment variable to enable threaded market fetch/enrichment
+  - Tune based on API rate limits and network capacity
 - **Caching**: Market prices are cached per (ticker, date) tuple
+  - Implementation: `MarketNormalizer._cache` stores prices in-memory per run
+  - Avoids repeated fetches for duplicate tickers within a single validation run
 - **Retries**: Failed fetches are retried with exponential backoff
+  - Configured via `PRICING_RETRY_COUNT` (default: 0)
+  - Backoff delay via `PRICING_RETRY_BACKOFF_MS` (default: 200ms)
+- **Metrics Logging**: Performance metrics logged to JSONL when `PRICING_METRICS_LOG` is set
+  - Includes counts, duration_ms, deviation statistics
+  - Useful for profiling and monitoring API performance
 - **Budget**: Target 30-second completion for 50-100 marks
+  - Profile with real APIs to tune `max_workers` vs rate limits
+  - Monitor execution time to ensure budget compliance
 
 ### Integration Points
 
@@ -389,3 +402,13 @@ pytest tests/pricing/ --cov=src/pricing
 - Refmaster integration is optional; enable by passing `refmaster` to `MarketNormalizer`
 - All dates must be in YYYY-MM-DD format (ISO 8601)
 - Prices are assumed to be in same currency (no cross-currency conversion)
+
+---
+
+## See Also
+
+- **[OMS Agent](../oms/README.md)** - Trade validation and booking error detection
+- **[Refmaster](../refmaster/README.md)** - Ticker normalization (optional integration)
+- **[Data Tools](../data_tools/README.md)** - Market data fetching via Financial Datasets API
+- **[Desk Agent](../desk_agent/README.md)** - Orchestrates pricing validation with other agents
+- **[API Documentation](../../docs/README.md)** - REST API endpoints for pricing validation

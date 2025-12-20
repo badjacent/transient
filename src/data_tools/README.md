@@ -1,6 +1,65 @@
-# Q&A Generation from 10-K Filings
+# Data Tools
 
-This document describes how `sample_qa.jsonl` was generated from 10-K HTML filings.
+![Status](https://img.shields.io/badge/status-production-green) ![Python](https://img.shields.io/badge/python-3.11+-blue)
+
+Market data integration and SEC filing analysis tools for the Desk Agent system.
+
+## Overview
+
+The data_tools module provides:
+- **Market Data Fetching**: Real-time equity snapshots, price data, and financial statements from Financial Datasets API
+- **SEC Filing Analysis**: Q&A generation from 10-K filings for fundamental analysis
+- **Data Schemas**: Pydantic models for type-safe data handling
+
+## Quick Start
+
+### Fetching Market Data
+
+```python
+from src.data_tools.fd_api import get_equity_snapshot, get_price_snapshot
+
+# Get comprehensive equity snapshot
+snapshot = get_equity_snapshot("AAPL")
+print(f"Price: ${snapshot.price}, Market Cap: ${snapshot.market_cap}")
+
+# Get simple price data
+price_data = get_price_snapshot("AAPL", as_of_date="2025-12-17")
+print(f"Close: ${price_data.close}")
+```
+
+### Fetching Financial Statements
+
+```python
+from src.data_tools.fd_api import (
+    get_income_statements,
+    get_balance_sheets,
+    get_cash_flow_statements
+)
+
+# Get 4 years of annual income statements
+income_stmts = get_income_statements("TSLA", years=4, period="annual")
+for stmt in income_stmts:
+    print(f"{stmt.fiscal_year}: Revenue ${stmt.total_revenue}")
+
+# Get balance sheets
+balance_sheets = get_balance_sheets("AAPL", years=4)
+
+# Get cash flow statements
+cash_flows = get_cash_flow_statements("MSFT", years=4)
+```
+
+### Configuration
+
+Set your Financial Datasets API key in `.env`:
+```bash
+FD_API_KEY=your_api_key_here
+```
+
+---
+
+## Q&A Generation from 10-K Filings
+
+This section describes how `sample_qa.jsonl` was generated from 10-K HTML filings.
 
 ## Source Files
 
@@ -137,3 +196,12 @@ The `sample_qa.jsonl` file contains one JSON object per line with:
 - There is no trading-calendar awareness; the price fetch simply requests a rolling window and infers trading days from nonzero-volume rows. Holidays/halts are not automatically aligned to an exchange calendar.
 - Neither the snapshot API nor the QA pipeline includes sentiment/news data. When a portfolio manager asks for "sentiment," the current Week 1 tools can only return fundamentals and return metrics; sentiment must be sourced elsewhere (or clearly noted as unavailable).
 - Because these gaps mirror the `fd_api.py` "IMPORTANT ASSUMPTION" notes, downstream agents must validate prices against an authoritative feed before using them for risk, OMS, or pricing workflows.
+
+---
+
+## See Also
+
+- **[Pricing Agent](../pricing/README.md)** - Uses data_tools to fetch market prices for mark validation
+- **[Ticker Agent](../ticker_agent/README.md)** - Uses data_tools for equity snapshots and financial statements
+- **[OMS Agent](../oms/README.md)** - Uses data_tools for price validation
+- **[Refmaster](../refmaster/README.md)** - Ticker normalization for reliable data fetching

@@ -1,5 +1,7 @@
 # OMS Trade QA (Week 4)
 
+![Status](https://img.shields.io/badge/status-production-green) ![Python](https://img.shields.io/badge/python-3.11+-blue)
+
 Validates trades against reference master and market data using deterministic checks.
 
 ## Schema
@@ -84,3 +86,12 @@ Possible output:
   "explanation": "WARNING: 1 issue(s). WARNING price_tolerance on price: Price deviates 3.00% from market"
 }
 ```
+
+---
+
+## See Also
+
+- **[Pricing Agent](../pricing/README.md)** - Validates EOD pricing marks against market data
+- **[Refmaster](../refmaster/README.md)** - Ticker normalization and identifier resolution
+- **[Desk Agent](../desk_agent/README.md)** - Orchestrates OMS validation with other agents
+- **[API Documentation](../../docs/README.md)** - REST API endpoints for trade validation

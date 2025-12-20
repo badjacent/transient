@@ -1,5 +1,7 @@
 # Refmaster
 
+![Status](https://img.shields.io/badge/status-production-green) ![Python](https://img.shields.io/badge/python-3.11+-blue)
+
 Deterministic reference master normalization layer for Week 3. It converts noisy identifiers ("Apple Inc NASDAQ", `AAPL.OQ`, `US0378331005`, etc.) into canonical equity records so downstream agents (OMS, Pricing, Desk) operate on consistent data even while real reference feeds are unavailable.
 
 ## Why it exists
@@ -168,4 +170,14 @@ See **[AMBIGUITY_DEMO.md](AMBIGUITY_DEMO.md)** for comprehensive demonstration s
 - Data quality is limited by the seed JSON. Hooking into real vendor feeds (CUSIP/ISIN services) will improve accuracy.
 - No fuzzy string metrics beyond simple substring checks. Token-based name matching could be added behind a feature flag if needed.
 
-Despite those limitations, Refmaster keeps OMS/Pricing/Desk aligned during migration, surfaces ambiguity to the desk, and provides an expandable path once higher-quality data arrives.\*\*\* End Patch
+Despite those limitations, Refmaster keeps OMS/Pricing/Desk aligned during migration, surfaces ambiguity to the desk, and provides an expandable path once higher-quality data arrives.
+
+---
+
+## See Also
+
+- **[OMS Agent](../oms/README.md)** - Uses Refmaster for ticker normalization in trade validation
+- **[Pricing Agent](../pricing/README.md)** - Optional Refmaster integration for mark validation
+- **[Desk Agent](../desk_agent/README.md)** - Orchestrates Refmaster with other validation agents
+- **[Data Tools](../data_tools/README.md)** - Market data integration
+- **[Ambiguity Demo](AMBIGUITY_DEMO.md)** - Examples of handling ambiguous ticker matches

@@ -23,6 +23,36 @@ The Desk Agent Service is a FastAPI-based REST API that exposes the multi-agent 
 
 ---
 
+## Table of Contents
+
+- [Overview](#overview)
+- [Quick Start](#quick-start)
+- [API Endpoints](#api-endpoints)
+  - [GET /health](#get-health)
+  - [POST /run-desk-agent](#post-run-desk-agent)
+  - [GET /scenarios](#get-scenarios)
+  - [GET /scenarios/{name}](#get-scenariosname)
+  - [POST /validate-trade](#post-validate-trade)
+  - [POST /validate-pricing](#post-validate-pricing)
+  - [POST /ticker-agent](#post-ticker-agent)
+  - [POST /normalize](#post-normalize)
+  - [GET /status](#get-status)
+  - [GET /config](#get-config)
+  - [GET /desk-agent/config](#get-desk-agentconfig)
+  - [GET /run-desk-agent/verbose](#get-run-desk-agentverbose)
+  - [GET /endpoints](#get-endpoints)
+- [Error Handling](#error-handling)
+- [Configuration](#configuration)
+- [Performance Characteristics](#performance-characteristics)
+- [Monitoring & Logging](#monitoring--logging)
+- [Deployment](#deployment)
+- [Troubleshooting](#troubleshooting)
+- [OpenAPI Documentation](#openapi-documentation)
+- [Security Considerations](#security-considerations)
+- [Additional Resources](#additional-resources)
+
+---
+
 ## Quick Start
 
 ### 1. Installation
@@ -74,6 +104,8 @@ Expected response:
   }
 }
 ```
+
+[↑ Back to Top](#table-of-contents)
 
 ---
 
@@ -273,9 +305,9 @@ curl http://localhost:8000/scenarios/clean_day.json
 
 ### POST /validate-trade
 
-**Purpose**: Validate a single trade via OMS agent (without full orchestrator)
+**Purpose**: Validate a single trade via OMS agent (without full orchestrator). Supports interactive verbose mode for step-by-step validation details.
 
-**Request**:
+**Request** (Standard):
 
 ```bash
 curl -X POST http://localhost:8000/validate-trade \
@@ -294,30 +326,122 @@ curl -X POST http://localhost:8000/validate-trade \
   }'
 ```
 
-**Response** (200 OK):
+**Request** (Verbose/Interactive Mode):
+
+```bash
+curl -X POST http://localhost:8000/validate-trade \
+  -H "Content-Type: application/json" \
+  -d '{
+    "trade": {
+      "trade_id": "T001",
+      "ticker": "AAPL",
+      "quantity": 100,
+      "price": 150.00,
+      "currency": "USD",
+      "counterparty": "MS",
+      "trade_dt": "2025-12-17",
+      "settle_dt": "2025-12-19"
+    },
+    "verbose": true
+  }'
+```
+
+**Response** (200 OK, Standard):
 
 ```json
 {
   "status": "OK",
   "issues": [],
-  "explanation": "All validation checks passed",
-  "trade": {...}
+  "explanation": "All checks passed.",
+  "metrics": {
+    "total_ms": 245.3,
+    "identifier_ms": 12.5,
+    "price_ms": 180.2
+  }
 }
 ```
+
+**Response** (200 OK, Verbose Mode):
+
+```json
+{
+  "status": "OK",
+  "issues": [],
+  "explanation": "All checks passed.",
+  "metrics": {...},
+  "verbose": {
+    "steps": [
+      {
+        "step": "required_fields",
+        "description": "Check all required fields are present",
+        "status": "ok",
+        "checked_fields": ["ticker", "quantity", "price", ...]
+      },
+      {
+        "step": "identifier_normalization",
+        "description": "Normalize ticker identifier via refmaster",
+        "status": "ok",
+        "input_ticker": "AAPL",
+        "normalization_results": [
+          {
+            "symbol": "AAPL",
+            "confidence": 0.92,
+            "ambiguous": false,
+            "reasons": ["symbol_exact", "country_match"]
+          }
+        ]
+      },
+      {
+        "step": "price_validation",
+        "description": "Validate trade price against market data",
+        "status": "ok",
+        "trade_price": 150.00,
+        "market_data": {
+          "market_price": 151.50,
+          "as_of_date": "2025-12-17",
+          "source": "financialdatasets.ai"
+        },
+        "thresholds": {
+          "warning_pct": 2.0,
+          "error_pct": 5.0
+        }
+      },
+      {
+        "step": "settlement_validation",
+        "description": "Validate settlement date rules",
+        "status": "ok",
+        "settlement_days": 2,
+        "expected_settlement_days": 2,
+        "is_weekend": false
+      }
+    ]
+  }
+}
+```
+
+**Verbose Mode Features**:
+
+- **Step-by-step validation**: See each check performed (required fields, schema, identifier, currency, price, counterparty, settlement)
+- **Intermediate data**: View normalization results, market price fetched, thresholds used
+- **Detailed context**: See what was checked vs what was found for each validation step
+- **Interactive debugging**: Understand why a trade passed or failed each check
 
 **Use Cases**:
 
 - Real-time trade validation in trading platform
 - Pre-flight checks before booking
 - Compliance validation
+- **Interactive debugging**: Understand validation failures step-by-step
+- **Training/Education**: Learn how OMS validation works
+- **Integration testing**: Verify each validation step behaves correctly
 
 ---
 
 ### POST /validate-pricing
 
-**Purpose**: Validate pricing marks via pricing agent (without full orchestrator)
+**Purpose**: Validate pricing marks via pricing agent (without full orchestrator). Supports interactive verbose mode for step-by-step validation details.
 
-**Request**:
+**Request** (Standard):
 
 ```bash
 curl -X POST http://localhost:8000/validate-pricing \
@@ -327,18 +451,35 @@ curl -X POST http://localhost:8000/validate-pricing \
       {
         "ticker": "AAPL",
         "internal_mark": 150.00,
-        "as_of": "2025-12-17"
+        "as_of_date": "2025-12-17"
       },
       {
         "ticker": "MSFT",
         "internal_mark": 370.00,
-        "as_of": "2025-12-17"
+        "as_of_date": "2025-12-17"
       }
     ]
   }'
 ```
 
-**Response** (200 OK):
+**Request** (Verbose/Interactive Mode):
+
+```bash
+curl -X POST http://localhost:8000/validate-pricing \
+  -H "Content-Type: application/json" \
+  -d '{
+    "marks": [
+      {
+        "ticker": "AAPL",
+        "internal_mark": 150.00,
+        "as_of_date": "2025-12-17"
+      }
+    ],
+    "verbose": true
+  }'
+```
+
+**Response** (200 OK, Standard):
 
 ```json
 {
@@ -354,17 +495,96 @@ curl -X POST http://localhost:8000/validate-pricing \
   ],
   "summary": {
     "counts": {
-      "OK": 2
-    }
+      "OK": 1
+    },
+    "duration_ms": 245.3,
+    "within_budget": true
   }
 }
 ```
+
+**Response** (200 OK, Verbose Mode):
+
+```json
+{
+  "enriched_marks": [...],
+  "summary": {...},
+  "verbose": {
+    "steps": [
+      {
+        "step": "load_marks",
+        "description": "Load and parse mark records",
+        "status": "ok",
+        "total_marks": 1,
+        "parsed_successfully": 1
+      },
+      {
+        "step": "ticker_normalization",
+        "description": "Normalize ticker identifiers via refmaster",
+        "normalizations": [
+          {
+            "ticker": "AAPL",
+            "normalization_results": [
+              {
+                "symbol": "AAPL",
+                "confidence": 0.92,
+                "ambiguous": false
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "step": "market_data_enrichment",
+        "description": "Fetch market prices and calculate deviations",
+        "enrichments": [
+          {
+            "ticker": "AAPL",
+            "internal_mark": 150.00,
+            "market_data": {
+              "market_price": 151.50,
+              "as_of_date": "2025-12-17",
+              "source": "financialdatasets.ai"
+            },
+            "deviation_percentage": 0.99,
+            "classification": "OK",
+            "is_stale": false,
+            "thresholds": {
+              "ok_threshold_pct": 2.0,
+              "review_threshold_pct": 5.0,
+              "stale_days": 2
+            }
+          }
+        ]
+      },
+      {
+        "step": "classification_summary",
+        "description": "Aggregate classification counts",
+        "classifications": {
+          "OK": 1
+        },
+        "total_marks": 1
+      }
+    ]
+  }
+}
+```
+
+**Verbose Mode Features**:
+
+- **Step-by-step validation**: See each check performed (load marks, ticker normalization, market data enrichment, classification)
+- **Intermediate data**: View normalization results, market prices fetched, deviation calculations
+- **Detailed context**: See thresholds used, stale mark detection, classification logic
+- **Interactive debugging**: Understand why marks are classified as OK, REVIEW_NEEDED, OUT_OF_TOLERANCE, STALE_MARK, or NO_MARKET_DATA
 
 **Use Cases**:
 
 - EOD pricing review
 - Risk management checks
 - P&L validation
+- **Interactive debugging**: Understand pricing validation failures step-by-step
+- **Training/Education**: Learn how pricing validation works
+- **Integration testing**: Verify each validation step behaves correctly
 
 ---
 
@@ -412,7 +632,7 @@ curl -X POST http://localhost:8000/ticker-agent \
 - Performance summaries
 - Income statement queries
 
-**Supported Intents**: See [ticker_agent documentation](ticker_agent/README.md) for full list of supported intents and question formats.
+**Supported Intents**: See [ticker_agent documentation](../src/ticker_agent/README.md) for full list of supported intents and question formats.
 
 ---
 
@@ -517,6 +737,182 @@ curl http://localhost:8000/status
   "env": "dev"
 }
 ```
+
+---
+
+### GET /config
+
+**Purpose**: Return current service configuration (sanitized, no secrets)
+
+**Request**:
+
+```bash
+curl http://localhost:8000/config
+```
+
+**Response** (200 OK):
+
+```json
+{
+  "env": "dev",
+  "version": "1.0.0",
+  "host": "0.0.0.0",
+  "port": 8000,
+  "log_level": "INFO",
+  "log_format": "json",
+  "request_timeout_s": 30,
+  "max_body_bytes": 1000000,
+  "scenarios_path": "scenarios",
+  "logs_path": "logs",
+  "audit_log_path": null,
+  "feature_flags": {}
+}
+```
+
+**Use Cases**:
+
+- Verify configuration without accessing config files
+- Debug configuration issues
+- Understand service settings
+
+---
+
+### GET /desk-agent/config
+
+**Purpose**: Return desk agent orchestrator configuration
+
+**Request**:
+
+```bash
+curl http://localhost:8000/desk-agent/config
+```
+
+**Response** (200 OK):
+
+```json
+{
+  "scenarios_path": "scenarios",
+  "logs_path": "logs",
+  "log_level": "INFO",
+  "retry_config": {
+    "max_retries": 2,
+    "backoff_ms": 500,
+    "abort_after_retry": false
+  },
+  "parallel_ticker": false,
+  "performance_budget_ms": 30000,
+  "refmaster_data_path": null,
+  "oms_config": {
+    "price_warning_threshold": null,
+    "price_error_threshold": null,
+    "settlement_days": null
+  },
+  "pricing_config": {
+    "stale_days": null
+  }
+}
+```
+
+**Use Cases**:
+
+- Understand desk agent retry behavior
+- Verify performance budgets
+- Check parallel execution settings
+
+---
+
+### GET /run-desk-agent/verbose
+
+**Purpose**: Return detailed information about desk agent execution structure
+
+**Request**:
+
+```bash
+curl http://localhost:8000/run-desk-agent/verbose
+```
+
+**Response** (200 OK):
+
+```json
+{
+  "execution_steps": [
+    {
+      "step": "normalize",
+      "description": "Normalize ticker identifiers via refmaster",
+      "agent": "refmaster",
+      "inputs": ["trades", "marks", "questions"],
+      "outputs": ["ticker_normalizations", "normalization_issues"]
+    },
+    ...
+  ],
+  "report_structure": {
+    "scenario": "Scenario metadata",
+    "data_quality": "Ticker normalization results",
+    "trade_issues": "Trade validation results",
+    "pricing_flags": "Pricing validation results",
+    "market_context": "Market snapshots and sector aggregation",
+    "ticker_agent_results": "Q&A responses",
+    "narrative": "Human-readable summary",
+    "summary": "Aggregated statistics",
+    "execution_metadata": {
+      "execution_time_ms": "Total execution time",
+      "timestamp": "Execution timestamp",
+      "agents_executed": "List of agents that ran",
+      "trace": "Step-by-step execution trace",
+      "config": "Configuration used",
+      "errors": "List of errors encountered"
+    }
+  },
+  "configuration": {
+    "retry_max": 2,
+    "retry_backoff_ms": 500,
+    "parallel_ticker": false
+  }
+}
+```
+
+**Use Cases**:
+
+- Understand desk agent workflow
+- Learn report structure before running scenarios
+- Debug execution flow
+
+---
+
+### GET /endpoints
+
+**Purpose**: List all available API endpoints with descriptions
+
+**Request**:
+
+```bash
+curl http://localhost:8000/endpoints
+```
+
+**Response** (200 OK):
+
+```json
+{
+  "endpoints": [
+    {
+      "path": "/config",
+      "methods": ["GET"],
+      "name": "get_config",
+      "summary": "Return current service configuration (sanitized, no secrets)."
+    },
+    ...
+  ],
+  "total": 14
+}
+```
+
+**Use Cases**:
+
+- Discover available endpoints
+- Understand API surface
+- API documentation generation
+
+[↑ Back to Top](#table-of-contents)
 
 ---
 
@@ -677,6 +1073,8 @@ Requests exceeding 2000ms trigger warnings:
 }
 ```
 
+[↑ Back to Top](#table-of-contents)
+
 ---
 
 ## Deployment
@@ -815,6 +1213,10 @@ Interactive API documentation available at:
 - Copy curl commands
 - See error code descriptions
 
+**Quick Start**: Just open http://localhost:8000/docs in your browser - no installation needed! Click "Try it out" on any endpoint to test it.
+
+For more testing tools and options, see **[API_TESTING_TOOLS.md](API_TESTING_TOOLS.md)**.
+
 ---
 
 ## Security Considerations
@@ -848,7 +1250,7 @@ Interactive API documentation available at:
 - **[ARCHITECTURE.md](ARCHITECTURE.md)** - System design & technical details
 - **[DEMO_SCRIPT.md](DEMO_SCRIPT.md)** - CTO-ready demo presentation
 - **[INSTALL.md](INSTALL.md)** - Installation & deployment guide
-- **[service/API_SERVICE.md](service/API_SERVICE.md)** - Additional API examples
+- **[service/API_SERVICE.md](../src/service/API_SERVICE.md)** - Additional API examples
 
 **Repository**: https://github.com/transient-ai/desk-agent
 **Support**: support@transient.ai

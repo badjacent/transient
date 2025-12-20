@@ -1,5 +1,7 @@
 # Ticker Agent
 
+![Status](https://img.shields.io/badge/status-production-green) ![Python](https://img.shields.io/badge/python-3.11+-blue)
+
 Lightweight ticker Q&A helper that classifies a question, resolves a ticker, fetches a snapshot via `data_tools.fd_api.get_equity_snapshot`, and returns structured intent/summary/metrics. LLM classification is optional; heuristics are always available as fallback.
 
 ## Supported Intents
